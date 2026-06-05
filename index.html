@@ -4437,7 +4437,15 @@ function latestYear() {
 }
 function latestWeek() {
   if (!DB) return '';
-  return DB.data.map(d => d.yw).filter(Boolean).sort().slice(-1)[0] || '';
+  // yw+wk 조합 기준으로 진짜 최신 주차 1개만 반환 → { yw, wk }
+  let best = null;
+  for (const d of DB.data) {
+    if (!d.yw) continue;
+    if (!best || d.yw > best.yw || (d.yw === best.yw && (d.wk||0) > (best.wk||0))) {
+      best = { yw: d.yw, wk: d.wk || 0 };
+    }
+  }
+  return best || null;
 }
 
 function buildPresets() {
@@ -4544,11 +4552,17 @@ function applyFilters() {
   if (activeVidType) res = res.filter(d => d.t === activeVidType || (activeVidType === '쇼츠' && d.t === '쇼츠'));
   if (org) res = res.filter(d => d.o === org);
   if (year) res = res.filter(d => d.yw && d.yw.startsWith(year));
-  if (presetExtras.latestWeek) res = res.filter(d => d.yw === presetExtras.latestWeek);
+  if (presetExtras.latestWeek) {
+    const lw = presetExtras.latestWeek;
+    res = res.filter(d => d.yw === lw.yw && (d.wk||0) === lw.wk);
+  }
   if (presetExtras.recentWeeks) {
-    const weeks = [...new Set(DB.data.map(d => d.yw).filter(Boolean))].sort().slice(-presetExtras.recentWeeks);
-    const set = new Set(weeks);
-    res = res.filter(d => set.has(d.yw));
+    // yw+wk 쌍 기준 고유 주차 목록을 정렬 후 최근 N개만 추출
+    const allPairs = [...new Map(
+      DB.data.filter(d => d.yw).map(d => [`${d.yw}-${d.wk||0}`, { yw: d.yw, wk: d.wk||0 }])
+    ).values()].sort((a,b) => a.yw.localeCompare(b.yw) || (a.wk||0)-(b.wk||0));
+    const recent = new Set(allPairs.slice(-presetExtras.recentWeeks).map(p => `${p.yw}-${p.wk}`));
+    res = res.filter(d => recent.has(`${d.yw}-${d.wk||0}`));
   }
 
   res = [...res].sort((a,b) => {
