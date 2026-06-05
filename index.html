@@ -4728,7 +4728,7 @@ function renderList(rows) {
   const items = rows.map((d, i) => {
     const idx = i + (currentPage-1)*PAGE_SIZE;
     const rank = String(idx + 1).padStart(2,'0');
-    const thumb = getThumbnail(d.u);
+    const thumb = getThumbnail(d.u, d.th);
     return `
     <div class="row" onclick="openModal(window._cardData[${idx}])">
       <div class="row-rank">${rank}</div>
@@ -4778,7 +4778,7 @@ function renderCards(rows) {
   const cards = rows.map((d, i) => {
     const idx = i + (currentPage-1)*PAGE_SIZE;
     const rank = String(idx + 1).padStart(2,'0');
-    const thumb = getThumbnail(d.u);
+    const thumb = getThumbnail(d.u, d.th);
     return `
     <div class="card" onclick="openModal(window._cardData[${idx}])">
       <div class="card-thumb">
@@ -4829,7 +4829,7 @@ function renderTable(rows) {
   const trs = rows.map((d, i) => {
     const idx = i + (currentPage-1)*PAGE_SIZE;
     const rank = String(idx + 1).padStart(2,'0');
-    const thumb = getThumbnail(d.u);
+    const thumb = getThumbnail(d.u, d.th);
     // tiny inline bar (ratio of this row's views vs max in current view)
     const ratio = Math.min(1, d.v / maxV);
     const sparkBar = `<span style="display:inline-block;width:48px;height:3px;background:var(--paper-3);vertical-align:middle;margin-right:8px;position:relative;overflow:hidden"><span style="position:absolute;left:0;top:0;height:100%;width:${Math.round(ratio*100)}%;background:var(--blue);opacity:.7"></span></span>`;
@@ -4889,10 +4889,13 @@ function goPage(n) {
 // modal
 function getVideoId(url) {
   if (!url) return null;
-  const m = url.match(/[?&]v=([^&]+)/) || url.match(/youtu\.be\/([^?]+)/);
+  const m = url.match(/[?&]v=([^&]+)/)
+           || url.match(/youtu\.be\/([^?]+)/)
+           || url.match(/\/shorts\/([A-Za-z0-9_-]+)/);
   return m ? m[1] : null;
 }
-function getThumbnail(url) {
+function getThumbnail(url, th) {
+  if (th) return th;
   const id = getVideoId(url);
   return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null;
 }
@@ -5588,7 +5591,7 @@ function renderSoloAnalysis(orgName, data, metrics) {
   window.__cmpVidStore = window.__cmpVidStore || {};
 
   const mkVidRow = (d, i, ns) => {
-    const thumb = getThumbnail(d.u);
+    const thumb = getThumbnail(d.u, d.th);
     const storeKey = ns + '_' + i;
     window.__cmpVidStore[storeKey] = d;
     return `
@@ -5925,7 +5928,7 @@ function renderCmpTops(orgA, orgB, dataA, dataB, metrics) {
   window.__cmpVidStore = window.__cmpVidStore || {};
 
   const mkVidRow = (d, i, ns) => {
-    const thumb = getThumbnail(d.u);
+    const thumb = getThumbnail(d.u, d.th);
     const storeKey = `cmpv_${ns}_${i}`;
     window.__cmpVidStore[storeKey] = d;
     return `
