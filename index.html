@@ -285,6 +285,14 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 28px; font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--ink-1);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.hero-side .val.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 .hero-side .val.blue { color: var(--blue); }
 @media (max-width: 720px) {
@@ -4331,8 +4339,26 @@ function initApp(json) {
   const totalStr = totalCnt.toLocaleString();
   const weeksCnt = (m.weeks || []).length || (m.files || '?');
   document.getElementById('headerMeta').textContent = `${totalStr} ITEMS · ${weeksCnt} WEEKS`;
-  document.getElementById('heroBigCount').textContent = fmtN(totalCnt);
-  document.getElementById('heroWeeks').textContent = `${weeksCnt} WEEKS`;
+
+  // ── 카운트업 애니메이션 ──────────────────────────────────────────
+  function heroCountUp(id, toVal, formatFn, duration, delay) {
+    const el = document.getElementById(id);
+    setTimeout(() => {
+      el.classList.add('visible');
+      const start = performance.now();
+      function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 4);
+        el.textContent = formatFn(toVal * ease);
+        if (t < 1) requestAnimationFrame(tick);
+        else el.textContent = formatFn(toVal);
+      }
+      requestAnimationFrame(tick);
+    }, delay);
+  }
+
+  heroCountUp('heroBigCount', totalCnt,  v => fmtN(Math.round(v)), 1600, 300);
+  heroCountUp('heroWeeks',    weeksCnt,  v => `${Math.round(v)} WEEKS`, 1800, 600);
 
   const orgSel = document.getElementById('orgFilter');
   orgSel.innerHTML = '<option value="">전체 기관</option>';
