@@ -24,10 +24,10 @@ const SUPABASE_ANON = 'sb_publishable__QegLyW0msH9pouuEpEg4Q_gRejhziu';
 // Supabase DB의 plan_features 테이블과 연동 예정 (현재는 로컬 정의)
 let PLAN_FEATURES = {
   //                                                                                         페이지2+  퀵픽전체  상세정보  검색한도   비교한도
-  guest: { label: '게스트', color: '#8b8b8d', search: false, filters: false, compare: false, export: false, dbLoad: false, page2: false, allPresets: false, detail: false, searchLimit: 0,    compareLimit: 0    },
+  guest: { label: 'Guest',  color: '#8b8b8d', search: false, filters: false, compare: false, export: false, dbLoad: false, page2: false, allPresets: false, detail: false, searchLimit: 0,    compareLimit: 0    },
   free:  { label: 'Free',   color: '#8b8b8d', search: false, filters: false, compare: false, export: false, dbLoad: false, page2: false, allPresets: false, detail: false, searchLimit: 0,    compareLimit: 0    },
-  basic: { label: 'Basic',  color: '#1a3eff', search: true,  filters: true,  compare: true,  export: false, dbLoad: false, page2: true,  allPresets: true,  detail: true,  searchLimit: 50,   compareLimit: 10   },
-  pro:   { label: 'Pro',    color: '#7c3aed', search: true,  filters: true,  compare: true,  export: true,  dbLoad: false, page2: true,  allPresets: true,  detail: true,  searchLimit: 300,  compareLimit: 100  },
+  basic: { label: 'Basic',  color: '#1a3eff', search: true,  filters: true,  compare: true,  export: false, dbLoad: false, page2: true,  allPresets: true,  detail: true,  searchLimit: 30,   compareLimit: 10   },
+  pro:   { label: 'Pro',    color: '#7c3aed', search: true,  filters: true,  compare: true,  export: false, dbLoad: false, page2: true,  allPresets: true,  detail: true,  searchLimit: 100,  compareLimit: 50   },
   admin: { label: 'Admin',  color: '#059669', search: true,  filters: true,  compare: true,  export: true,  dbLoad: true,  page2: true,  allPresets: true,  detail: true,  searchLimit: null, compareLimit: null },
 };
 
@@ -3218,14 +3218,14 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
         <!-- 로그인 상태 -->
         <div id="authUserWrap" style="display:none; position:relative">
           <button class="auth-user-btn" id="authUserBtn" onclick="toggleUserMenu()">
-            <span class="auth-plan-badge" id="headerPlanBadge">FREE</span>
+            <span class="auth-plan-badge" id="headerPlanBadge">GUEST</span>
             <span id="headerEmail" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5l3 3 3-3"/></svg>
           </button>
           <div class="auth-user-menu" id="authUserMenu">
             <div class="auth-menu-header">
               <div class="auth-menu-email" id="menuEmail"></div>
-              <span class="auth-menu-plan" id="menuPlan">FREE</span>
+              <span class="auth-menu-plan" id="menuPlan">GUEST</span>
             </div>
             <button class="auth-menu-item" id="menuAdminBtn" onclick="openAdminPanel()" style="display:none">
               ⚙ 관리자 패널
