@@ -1973,100 +1973,54 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   padding: 20px 22px; margin-bottom: 24px;
   display: flex; align-items: center; gap: 32px;
 }
-
+.solo-type-label {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px; color: var(--ink-3);
+  letter-spacing: 0.02em; text-transform: uppercase;
+  margin-bottom: 10px;
+}
 /* ── 인사이트 사이드바 (단독 기관 분석 전용) */
 .solo-top-with-sidebar {
-  display: grid;
-  grid-template-columns: 1fr 192px;
-  gap: 28px;
-  align-items: start;
+  display: grid; grid-template-columns: 1fr 192px; gap: 28px; align-items: start;
 }
-.solo-insight-sidebar {
-  display: flex;
-  flex-direction: column;
-  padding-top: 1px;
-}
-.si-block {
-  padding: 14px 0 13px;
-  border-bottom: 1px solid var(--line);
-}
+.solo-insight-sidebar { display: flex; flex-direction: column; padding-top: 1px; }
+.si-block { padding: 14px 0 13px; border-bottom: 1px solid var(--line); }
 .si-block:last-child { border-bottom: none; }
 .si-label {
   font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 10px; letter-spacing: 0.08em;
-  color: var(--ink-4); text-transform: uppercase;
-  margin-bottom: 9px;
+  font-size: 10px; letter-spacing: 0.08em; color: var(--ink-4);
+  text-transform: uppercase; margin-bottom: 9px;
 }
-.si-big {
-  font-size: 28px; font-weight: 700;
-  color: var(--blue); letter-spacing: -0.03em; line-height: 1;
-}
-.si-sub {
-  font-size: 11px; color: var(--ink-3);
-  margin-top: 4px; line-height: 1.5;
-}
-.si-bar-track {
-  margin-top: 9px; height: 4px;
-  background: var(--paper-3); border: 0.5px solid var(--line);
-}
-.si-bar-fill {
-  height: 100%; background: var(--blue);
-  width: 0; transition: width 1.4s cubic-bezier(0.22,1,0.36,1);
-}
+.si-big { font-size: 28px; font-weight: 700; color: var(--blue); letter-spacing: -0.03em; line-height: 1; }
+.si-sub { font-size: 11px; color: var(--ink-3); margin-top: 4px; line-height: 1.5; }
+.si-bar-track { margin-top: 9px; height: 4px; background: var(--paper-3); border: 0.5px solid var(--line); }
+.si-bar-fill { height: 100%; background: var(--blue); width: 0; transition: width 1.4s cubic-bezier(0.22,1,0.36,1); }
 .si-ratio-row { display: flex; gap: 3px; height: 22px; }
-.si-ratio-seg {
-  height: 100%; display: flex; align-items: center;
-  justify-content: center; font-size: 10px; font-weight: 600;
-}
+.si-ratio-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; }
 .si-ratio-shorts { background: var(--blue); color: white; }
-.si-ratio-normal {
-  background: var(--paper-3); color: var(--ink-3);
-  border: 0.5px solid var(--line);
-}
+.si-ratio-normal { background: var(--paper-3); color: var(--ink-3); border: 0.5px solid var(--line); }
 .si-ratio-labels {
-  display: flex; justify-content: space-between;
-  margin-top: 5px;
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 10px; color: var(--ink-4);
+  display: flex; justify-content: space-between; margin-top: 5px;
+  font-family: 'Pretendard', -apple-system, sans-serif; font-size: 10px; color: var(--ink-4);
 }
 .si-cmp-rows { display: flex; flex-direction: column; gap: 10px; }
 .si-cmp-row { display: flex; flex-direction: column; gap: 4px; }
 .si-cmp-head { display: flex; justify-content: space-between; align-items: baseline; }
-.si-cmp-lbl {
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 11px; color: var(--ink-3);
-}
+.si-cmp-lbl { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 11px; color: var(--ink-3); }
 .si-cmp-val { font-size: 12px; font-weight: 700; color: var(--ink-1); letter-spacing: -0.02em; }
 .si-cmp-val.blue { color: var(--blue); }
 .si-cmp-track { height: 4px; background: var(--paper-3); border: 0.5px solid var(--line); }
 .si-cmp-fill { height: 100%; width: 0; transition: width 1.3s cubic-bezier(0.22,1,0.36,1); }
 .si-cmp-fill-avg { background: var(--line-2); }
 .si-cmp-fill-top { background: var(--blue); }
-.si-multiplier {
-  margin-top: 10px; padding-top: 10px;
-  border-top: 1px dashed var(--line);
-  display: flex; align-items: baseline; gap: 5px;
-}
+.si-multiplier { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); display: flex; align-items: baseline; gap: 5px; }
 .si-mult-x { font-size: 22px; font-weight: 700; color: var(--blue); letter-spacing: -0.03em; line-height: 1; }
 .si-mult-sub { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 11px; color: var(--ink-3); line-height: 1.5; }
 @media (max-width: 720px) {
   .solo-top-with-sidebar { grid-template-columns: 1fr; }
-  .solo-insight-sidebar {
-    flex-direction: row; flex-wrap: wrap; gap: 0;
-    border-top: 1px solid var(--line); padding-top: 0;
-  }
-  .si-block {
-    flex: 1; min-width: 140px;
-    padding: 12px 16px 12px 0;
-    border-bottom: none; border-right: 1px solid var(--line);
-  }
+  .solo-insight-sidebar { flex-direction: row; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 0; }
+  .si-block { flex: 1; min-width: 140px; padding: 12px 16px 12px 0; border-bottom: none; border-right: 1px solid var(--line); }
   .si-block:last-child { border-right: none; }
-}
-.solo-type-label {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 10px; color: var(--ink-3);
-  letter-spacing: 0.02em; text-transform: uppercase;
-  margin-bottom: 10px;
 }
 
 /* compare result area */
@@ -5715,23 +5669,29 @@ function renderSoloAnalysis(orgName, data, metrics) {
       </div>`;
   };
 
-  const topSections = activeMetrics.map((mk, si) => {
+  // ── 인사이트 데이터 사전 계산 (HTML과 분리)
+  const insightData = {};
+  activeMetrics.forEach((mk, si) => {
     const sorted = [...data].sort((a,b)=>(b[mk]||0)-(a[mk]||0)).slice(0,5);
+    const totalMk  = data.reduce((s,d)=>s+(d[mk]||0), 0);
+    const top5sum  = sorted.reduce((s,d)=>s+(d[mk]||0), 0);
+    const avgAll   = data.length ? Math.round(totalMk / data.length) : 0;
+    const avgTop5  = sorted.length ? Math.round(top5sum / sorted.length) : 0;
+    const concPct  = totalMk > 0 ? Math.round(top5sum / totalMk * 100) : 0;
+    const mult     = avgAll > 0 ? parseFloat((avgTop5 / avgAll).toFixed(1)) : 0;
+    const avgRatio = avgTop5 > 0 ? Math.round(avgAll / avgTop5 * 100) : 0;
+    const shorts   = data.filter(d=>d.t==='쇼츠').length;
+    const normal   = data.filter(d=>d.t==='일반').length;
+    const shortsPct = data.length > 0 ? Math.round(shorts / data.length * 100) : 0;
+    insightData[`${mk}_${si}`] = { sorted, concPct, avgAll, avgTop5, mult, avgRatio, shorts, normal, shortsPct };
+  });
 
-    // ── 인사이트 계산
-    const totalMk   = data.reduce((s,d)=>s+(d[mk]||0), 0);
-    const top5sum   = sorted.reduce((s,d)=>s+(d[mk]||0), 0);
-    const avgAll    = data.length ? Math.round(totalMk / data.length) : 0;
-    const avgTop5   = sorted.length ? Math.round(top5sum / sorted.length) : 0;
-    const concPct   = totalMk > 0 ? Math.round(top5sum / totalMk * 100) : 0;
-    const multiplier = avgAll > 0 ? (avgTop5 / avgAll) : 0;
-    const shortsCount = data.filter(d=>d.t==='쇼츠').length;
-    const normalCount = data.filter(d=>d.t==='일반').length;
-    const shortsPct = data.length > 0 ? Math.round(shortsCount / data.length * 100) : 0;
+  const topSections = activeMetrics.map((mk, si) => {
+    const { sorted, concPct, avgAll, avgTop5, mult, shorts, normal, shortsPct } = insightData[`${mk}_${si}`];
     const normalPct = 100 - shortsPct;
     const sidId = `si_${mk}_${si}`;
 
-    const sidebar = `
+    const sidebarHtml = `
       <div class="solo-insight-sidebar">
         <div class="si-block">
           <div class="si-label">조회수 집중도</div>
@@ -5745,7 +5705,7 @@ function renderSoloAnalysis(orgName, data, metrics) {
             <div class="si-ratio-seg si-ratio-shorts" style="width:${shortsPct}%">${shortsPct >= 20 ? '쇼츠' : ''}</div>
             <div class="si-ratio-seg si-ratio-normal" style="width:${normalPct}%">${normalPct >= 20 ? '일반' : ''}</div>
           </div>
-          <div class="si-ratio-labels"><span>${shortsPct}% · ${shortsCount}편</span><span>${normalPct}% · ${normalCount}편</span></div>
+          <div class="si-ratio-labels"><span>${shortsPct}% · ${shorts}편</span><span>${normalPct}% · ${normal}편</span></div>
         </div>
         <div class="si-block">
           <div class="si-label">채널 평균 vs TOP 5</div>
@@ -5780,48 +5740,45 @@ function renderSoloAnalysis(orgName, data, metrics) {
         </div>
         <div class="solo-top-with-sidebar">
           <div>${sorted.map((d,i)=>mkVidRow(d,i,`solo_${mk}_${si}`)).join('')}</div>
-          ${sidebar}
+          ${sidebarHtml}
         </div>
-      </div>
-      <script>
-        (function() {
-          var concPct = ${concPct}, mult = ${multiplier.toFixed(1)};
-          var avgRatio = ${avgAll > 0 ? Math.round(avgAll / avgTop5 * 100) : 0};
-          setTimeout(function() {
-            var concBar = document.getElementById('${sidId}_concbar');
-            var concEl  = document.getElementById('${sidId}_conc');
-            var avgBar  = document.getElementById('${sidId}_avgbar');
-            var topBar  = document.getElementById('${sidId}_topbar');
-            var multEl  = document.getElementById('${sidId}_mult');
-            if (!concBar) return;
-            concBar.style.width = concPct + '%';
-            avgBar.style.width  = avgRatio + '%';
-            topBar.style.width  = '100%';
-            var s1 = performance.now();
-            function tickConc(now) {
-              var t = Math.min((now - s1) / 1200, 1);
-              var e = 1 - Math.pow(1 - t, 3);
-              concEl.textContent = Math.round(concPct * e) + '%';
-              if (t < 1) requestAnimationFrame(tickConc);
-              else concEl.textContent = concPct + '%';
-            }
-            requestAnimationFrame(tickConc);
-            var s2 = performance.now();
-            function tickMult(now) {
-              var t = Math.min((now - s2) / 1300, 1);
-              var e = 1 - Math.pow(1 - t, 3);
-              multEl.textContent = (mult * e).toFixed(1) + 'x';
-              if (t < 1) requestAnimationFrame(tickMult);
-              else multEl.textContent = mult + 'x';
-            }
-            requestAnimationFrame(tickMult);
-          }, 250);
-        })();
-      <\/script>`;
+      </div>`;
   }).join('');
 
   document.getElementById('cmpChartWrap').innerHTML = '';
   document.getElementById('cmpTops').innerHTML = topSections;
+
+  // ── innerHTML 주입 후 DOM이 준비된 시점에 애니메이션 실행
+  function runCountUp(el, from, to, duration, fmt) {
+    if (!el) return;
+    const start = performance.now();
+    function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const e = 1 - Math.pow(1 - t, 3);
+      el.textContent = fmt(from + (to - from) * e);
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = fmt(to);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  activeMetrics.forEach((mk, si) => {
+    const { concPct, mult, avgRatio } = insightData[`${mk}_${si}`];
+    const sidId = `si_${mk}_${si}`;
+    setTimeout(() => {
+      const concBar = document.getElementById(sidId + '_concbar');
+      const concEl  = document.getElementById(sidId + '_conc');
+      const avgBar  = document.getElementById(sidId + '_avgbar');
+      const topBar  = document.getElementById(sidId + '_topbar');
+      const multEl  = document.getElementById(sidId + '_mult');
+      if (!concBar) return;
+      concBar.style.width = concPct + '%';
+      if (avgBar) avgBar.style.width = avgRatio + '%';
+      if (topBar) topBar.style.width = '100%';
+      runCountUp(concEl, 0, concPct, 1200, v => Math.round(v) + '%');
+      runCountUp(multEl, 0, mult,    1300, v => v.toFixed(1) + 'x');
+    }, 100);
+  });
 }
 
 function renderCmpCards(orgA, orgB, statA, statB, primaryMetric) {
