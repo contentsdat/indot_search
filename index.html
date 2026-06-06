@@ -5970,24 +5970,26 @@ function animateDonut(svgEl) {
   const pctEl     = document.getElementById(uid + '_pct');
   const pctTarget = Math.round(ratio * 100);
   if (!arc) {
-    // shortsRatio === 0인 경우 텍스트만 업데이트
     if (pctEl) pctEl.textContent = '0%';
     return;
   }
   const circ    = parseFloat(arc.getAttribute('stroke-dasharray'));
   const target  = circ * ratio;
-  const duration = 2400;
+  // dashoffset: circ(완전 숨김) → (circ - target)(목표치만큼 보임)
+  const fromOffset = circ;
+  const toOffset   = circ - target;
+  const duration   = 2400;
   let start = null;
   requestAnimationFrame(function tick(ts) {
     if (!start) start = ts;
     const t    = Math.min((ts - start) / duration, 1);
     const ease = 1 - Math.pow(1 - t, 3);
-    const cur  = target * ease;
-    arc.setAttribute('stroke-dashoffset', (circ - cur).toFixed(2));
+    const cur  = fromOffset + (toOffset - fromOffset) * ease;
+    arc.setAttribute('stroke-dashoffset', cur.toFixed(2));
     if (pctEl) pctEl.textContent = Math.round(pctTarget * ease) + '%';
     if (t < 1) requestAnimationFrame(tick);
     else {
-      arc.setAttribute('stroke-dashoffset', (circ - target).toFixed(2));
+      arc.setAttribute('stroke-dashoffset', toOffset.toFixed(2));
       if (pctEl) pctEl.textContent = pctTarget + '%';
     }
   });
