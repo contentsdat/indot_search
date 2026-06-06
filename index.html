@@ -5069,14 +5069,11 @@ function toggleSubscriberChart() {
 
 // ─── 차트 draw-on 헬퍼: 뷰포트 진입 시 애니메이션 시작 ───
 function drawOnWhenVisible(svgId, duration = 1000, stagger = 80, lineOnly = false) {
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  // rAF 이중 중첩 대신 setTimeout으로 DOM이 완전히 페인트된 후 실행
+  setTimeout(() => {
     const svg = document.getElementById(svgId);
     if (!svg) return;
-    const paths = Array.from(
-      lineOnly
-        ? svg.querySelectorAll('path[stroke]')
-        : svg.querySelectorAll('path[stroke]')
-    );
+    const paths = Array.from(svg.querySelectorAll('path[stroke]'));
     if (!paths.length) return;
 
     const animate = () => {
@@ -5086,10 +5083,11 @@ function drawOnWhenVisible(svgId, duration = 1000, stagger = 80, lineOnly = fals
         path.style.strokeDasharray  = len;
         path.style.strokeDashoffset = len;
         path.style.transition = 'none';
-        requestAnimationFrame(() => {
-          path.style.transition = `stroke-dashoffset ${duration + i * stagger}ms cubic-bezier(0.22,1,0.36,1) ${i * (stagger * 0.5)}ms`;
+        // 한 프레임 뒤에 transition 적용해야 초기값이 확실히 세팅됨
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          path.style.transition = `stroke-dashoffset ${duration + i * stagger}ms cubic-bezier(0.22,1,0.36,1) ${i * stagger * 0.4}ms`;
           path.style.strokeDashoffset = '0';
-        });
+        }));
       });
     };
 
@@ -5107,7 +5105,7 @@ function drawOnWhenVisible(svgId, duration = 1000, stagger = 80, lineOnly = fals
       }, { threshold: 0.1 });
       observer.observe(svg);
     }
-  }));
+  }, 120);
 }
 
 // ─── 구독자 그래프 렌더 ───
@@ -5282,7 +5280,7 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       </div>
     </div>`;
 
-  drawOnWhenVisible('subChartSvg', 1500, 100);
+  drawOnWhenVisible('subChartSvg', 2200, 100);
 }
 
 // ─── 구독자 그래프 Hover Tooltip ───
@@ -5705,7 +5703,7 @@ function renderSoloAnalysis(orgName, data, metrics) {
       </div>` : ''}
     </div>`;
 
-  drawOnWhenVisible('soloTrendSvg', 1500, 100);
+  drawOnWhenVisible('soloTrendSvg', 2200, 100);
 
   // ── 상위 영상 TOP 5
   const activeMetrics = metrics.length ? metrics : ['v'];
@@ -5947,16 +5945,72 @@ function mkDonut(shorts, normal, color, size=160) {
   const x2 = cx + R * Math.cos(endAngle);
   const y2 = cy + R * Math.sin(endAngle);
   const largeArc = shortsRatio > 0.5 ? 1 : 0;
-  const shortsPath = shortsRatio >= 1
-    ? `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"/>`
-    : shortsRatio <= 0
-    ? ''
-    : `<path d="M${x1.toFixed(2)},${y1.toFixed(2)} A${R},${R} 0 ${largeArc} 1 ${x2.toFixed(2)},${y2.toFixed(2)}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="butt" opacity="0.85"/>`;
+
+  // 고유 ID로 애니메이션 타겟 지정
+  const uid = 'donut_' + Math.random().toString(36).slice(2, 8);
+  const circ = tau * R;
+  const targetDash = circ * shortsRatio;
+
+  let shortsPath;
+  if (shortsRatio >= 1) {
+    shortsPath = `<circle id="${uid}" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"
+      stroke-dasharray="${circ}" stroke-dashoffset="${circ}"/>`;
+  } else if (shortsRatio <= 0) {
+    shortsPath = '';
+  } else {
+    // arc를 dashoffset으로 애니메이션하기 위해 전체 원 circle + clip 대신
+    // circumference 기반 dasharray 기법 사용
+    shortsPath = `<circle id="${uid}" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"
+      stroke-dasharray="${targetDash.toFixed(2)} ${(circ - targetDash).toFixed(2)}"
+      stroke-dashoffset="${(circ * 0.25).toFixed(2)}"
+      style="stroke-dasharray:${circ.toFixed(2)};stroke-dashoffset:${(circ + circ * 0.25).toFixed(2)};transform-origin:center"/>`;
+  }
+
+  // 퍼센트 카운트업 + 원호 애니메이션을 위한 인라인 스크립트
+  const animScript = shortsRatio > 0 ? `
+    <script>
+    (function() {
+      function runDonut_${uid}() {
+        var el = document.getElementById('${uid}');
+        var pctEls = document.querySelectorAll('[data-donut-pct="${uid}"]');
+        if (!el) return;
+        var circ = ${circ.toFixed(2)};
+        var target = ${targetDash.toFixed(2)};
+        var pctTarget = ${Math.round(shortsRatio * 100)};
+        var duration = 1800;
+        var start = null;
+        // 초기 상태: 전체 숨김
+        el.style.strokeDasharray = circ + ' ' + circ;
+        el.style.strokeDashoffset = circ * 1.25;
+        requestAnimationFrame(function tick(ts) {
+          if (!start) start = ts;
+          var t = Math.min((ts - start) / duration, 1);
+          var ease = 1 - Math.pow(1 - t, 3);
+          var cur = target * ease;
+          el.style.strokeDasharray = cur.toFixed(2) + ' ' + (circ - cur).toFixed(2);
+          el.style.strokeDashoffset = (circ * 0.25).toFixed(2);
+          pctEls.forEach(function(p){ p.textContent = Math.round(pctTarget * ease) + '%'; });
+          if (t < 1) requestAnimationFrame(tick);
+          else {
+            el.style.strokeDasharray = target.toFixed(2) + ' ' + (circ - target).toFixed(2);
+            pctEls.forEach(function(p){ p.textContent = pctTarget + '%'; });
+          }
+        });
+      }
+      // DOM 준비 후 약간의 딜레이를 두고 실행
+      setTimeout(runDonut_${uid}, 200);
+    })();
+    <\/script>` : '';
+
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
     <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--paper-3)" stroke-width="${sw}"/>
-    ${shortsPath}
-    <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-family="'Pretendard',-apple-system,sans-serif" font-size="20" font-weight="700" fill="var(--ink-1)">${Math.round(shortsRatio*100)}%</text>
-  </svg>`;
+    ${shortsRatio >= 1
+      ? `<circle id="${uid}" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"/>`
+      : shortsRatio <= 0 ? ''
+      : `<circle id="${uid}" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"/>`
+    }
+    <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-family="'Pretendard',-apple-system,sans-serif" font-size="20" font-weight="700" fill="var(--ink-1)" data-donut-pct="${uid}">${Math.round(shortsRatio*100)}%</text>
+  </svg>${animScript}`;
 }
 
 function renderCmpTypeChart(orgA, orgB, statA, statB) {
@@ -6138,7 +6192,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
       </div>
     </div>`;
 
-  drawOnWhenVisible('cmpChartSvg', 1500, 100, true);
+  drawOnWhenVisible('cmpChartSvg', 2200, 100, true);
 }
 
 function renderCmpTops(orgA, orgB, dataA, dataB, metrics) {
