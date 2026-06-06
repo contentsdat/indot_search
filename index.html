@@ -5677,6 +5677,23 @@ function renderSoloAnalysis(orgName, data, metrics) {
       </div>` : ''}
     </div>`;
 
+  // ── soloTrendSvg draw-on 애니메이션 (이중 rAF: innerHTML 삽입 후 레이아웃 확정 대기)
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const svg = document.getElementById('soloTrendSvg');
+    if (!svg) return;
+    Array.from(svg.querySelectorAll('path[stroke]')).forEach((path, i) => {
+      const len = path.getTotalLength();
+      if (!len) return;
+      path.style.strokeDasharray  = len;
+      path.style.strokeDashoffset = len;
+      path.style.transition = 'none';
+      requestAnimationFrame(() => {
+        path.style.transition = `stroke-dashoffset ${1000 + i * 80}ms cubic-bezier(0.22,1,0.36,1) ${i * 50}ms`;
+        path.style.strokeDashoffset = '0';
+      });
+    });
+  }));
+
   // ── 상위 영상 TOP 5
   const activeMetrics = metrics.length ? metrics : ['v'];
   const ML = {v:'조회수', l:'좋아요', c:'댓글수'};
