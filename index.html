@@ -285,6 +285,14 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 28px; font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--ink-1);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.hero-side .val.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 .hero-side .val.blue { color: var(--blue); }
 @media (max-width: 720px) {
@@ -1980,17 +1988,11 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   margin-bottom: 10px;
 }
 /* ── 인사이트 사이드바 (단독 기관 분석 전용) */
-.solo-top-with-sidebar {
-  display: grid; grid-template-columns: 1fr 192px; gap: 28px; align-items: start;
-}
+.solo-top-with-sidebar { display: grid; grid-template-columns: 1fr 192px; gap: 28px; align-items: start; }
 .solo-insight-sidebar { display: flex; flex-direction: column; padding-top: 1px; }
 .si-block { padding: 14px 0 13px; border-bottom: 1px solid var(--line); }
 .si-block:last-child { border-bottom: none; }
-.si-label {
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 10px; letter-spacing: 0.08em; color: var(--ink-4);
-  text-transform: uppercase; margin-bottom: 9px;
-}
+.si-label { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 10px; letter-spacing: 0.08em; color: var(--ink-4); text-transform: uppercase; margin-bottom: 9px; }
 .si-big { font-size: 28px; font-weight: 700; color: var(--blue); letter-spacing: -0.03em; line-height: 1; }
 .si-sub { font-size: 11px; color: var(--ink-3); margin-top: 4px; line-height: 1.5; }
 .si-bar-track { margin-top: 9px; height: 4px; background: var(--paper-3); border: 0.5px solid var(--line); }
@@ -1999,10 +2001,7 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 .si-ratio-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; }
 .si-ratio-shorts { background: var(--blue); color: white; }
 .si-ratio-normal { background: var(--paper-3); color: var(--ink-3); border: 0.5px solid var(--line); }
-.si-ratio-labels {
-  display: flex; justify-content: space-between; margin-top: 5px;
-  font-family: 'Pretendard', -apple-system, sans-serif; font-size: 10px; color: var(--ink-4);
-}
+.si-ratio-labels { display: flex; justify-content: space-between; margin-top: 5px; font-family: 'Pretendard', -apple-system, sans-serif; font-size: 10px; color: var(--ink-4); }
 .si-cmp-rows { display: flex; flex-direction: column; gap: 10px; }
 .si-cmp-row { display: flex; flex-direction: column; gap: 4px; }
 .si-cmp-head { display: flex; justify-content: space-between; align-items: baseline; }
@@ -4374,8 +4373,27 @@ function initApp(json) {
   const totalStr = totalCnt.toLocaleString();
   const weeksCnt = (m.weeks || []).length || (m.files || '?');
   document.getElementById('headerMeta').textContent = `${totalStr} ITEMS · ${weeksCnt} WEEKS`;
-  document.getElementById('heroBigCount').textContent = fmtN(totalCnt);
-  document.getElementById('heroWeeks').textContent = `${weeksCnt} WEEKS`;
+
+  // ── 히어로 카운트업 애니메이션 ──
+  function heroCountUp(id, toVal, formatFn, duration, delay) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    setTimeout(() => {
+      el.classList.add('visible');
+      const start = performance.now();
+      function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 4);
+        el.textContent = formatFn(toVal * ease);
+        if (t < 1) requestAnimationFrame(tick);
+        else el.textContent = formatFn(toVal);
+      }
+      requestAnimationFrame(tick);
+    }, delay);
+  }
+
+  heroCountUp('heroBigCount', totalCnt,  v => fmtN(Math.round(v)), 1600, 300);
+  heroCountUp('heroWeeks',    weeksCnt,  v => `${Math.round(v)} WEEKS`, 1800, 600);
 
   const orgSel = document.getElementById('orgFilter');
   orgSel.innerHTML = '<option value="">전체 기관</option>';
@@ -5220,6 +5238,19 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
         </div>
       </div>
     </div>`;
+
+  // ── draw-on 애니메이션
+  requestAnimationFrame(() => {
+    const svg = document.getElementById('subChartSvg');
+    if (!svg) return;
+    Array.from(svg.querySelectorAll('path[stroke]')).forEach((path, i) => {
+      const len = path.getTotalLength();
+      path.style.strokeDasharray  = len;
+      path.style.strokeDashoffset = len;
+      path.style.transition = `stroke-dashoffset ${1000 + i * 80}ms cubic-bezier(0.22,1,0.36,1) ${i * 50}ms`;
+      requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; });
+    });
+  });
 }
 
 // ─── 구독자 그래프 Hover Tooltip ───
@@ -5669,19 +5700,19 @@ function renderSoloAnalysis(orgName, data, metrics) {
       </div>`;
   };
 
-  // ── 인사이트 데이터 사전 계산 (HTML과 분리)
+  // ── 인사이트 데이터 사전 계산
   const insightData = {};
   activeMetrics.forEach((mk, si) => {
     const sorted = [...data].sort((a,b)=>(b[mk]||0)-(a[mk]||0)).slice(0,5);
-    const totalMk  = data.reduce((s,d)=>s+(d[mk]||0), 0);
-    const top5sum  = sorted.reduce((s,d)=>s+(d[mk]||0), 0);
-    const avgAll   = data.length ? Math.round(totalMk / data.length) : 0;
-    const avgTop5  = sorted.length ? Math.round(top5sum / sorted.length) : 0;
-    const concPct  = totalMk > 0 ? Math.round(top5sum / totalMk * 100) : 0;
-    const mult     = avgAll > 0 ? parseFloat((avgTop5 / avgAll).toFixed(1)) : 0;
-    const avgRatio = avgTop5 > 0 ? Math.round(avgAll / avgTop5 * 100) : 0;
-    const shorts   = data.filter(d=>d.t==='쇼츠').length;
-    const normal   = data.filter(d=>d.t==='일반').length;
+    const totalMk = data.reduce((s,d)=>s+(d[mk]||0), 0);
+    const top5sum = sorted.reduce((s,d)=>s+(d[mk]||0), 0);
+    const avgAll  = data.length ? Math.round(totalMk / data.length) : 0;
+    const avgTop5 = sorted.length ? Math.round(top5sum / sorted.length) : 0;
+    const concPct = totalMk > 0 ? Math.round(top5sum / totalMk * 100) : 0;
+    const mult    = avgAll > 0 ? parseFloat((avgTop5 / avgAll).toFixed(1)) : 0;
+    const avgRatio= avgTop5 > 0 ? Math.round(avgAll / avgTop5 * 100) : 0;
+    const shorts  = data.filter(d=>d.t==='쇼츠').length;
+    const normal  = data.filter(d=>d.t==='일반').length;
     const shortsPct = data.length > 0 ? Math.round(shorts / data.length * 100) : 0;
     insightData[`${mk}_${si}`] = { sorted, concPct, avgAll, avgTop5, mult, avgRatio, shorts, normal, shortsPct };
   });
@@ -5748,7 +5779,7 @@ function renderSoloAnalysis(orgName, data, metrics) {
   document.getElementById('cmpChartWrap').innerHTML = '';
   document.getElementById('cmpTops').innerHTML = topSections;
 
-  // ── innerHTML 주입 후 DOM이 준비된 시점에 애니메이션 실행
+  // ── innerHTML 주입 후 DOM 준비 시점에 애니메이션 실행
   function runCountUp(el, from, to, duration, fmt) {
     if (!el) return;
     const start = performance.now();
@@ -6072,6 +6103,20 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
         "></div>
       </div>
     </div>`;
+
+  // ── draw-on 애니메이션: line path만 대상 (area path 제외)
+  requestAnimationFrame(() => {
+    const svg = document.getElementById('cmpChartSvg');
+    if (!svg) return;
+    const linePaths = Array.from(svg.querySelectorAll('path[stroke]'));
+    linePaths.forEach((path, i) => {
+      const len = path.getTotalLength();
+      path.style.strokeDasharray  = len;
+      path.style.strokeDashoffset = len;
+      path.style.transition = `stroke-dashoffset ${900 + i * 60}ms cubic-bezier(0.22,1,0.36,1) ${i * 40}ms`;
+      requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; });
+    });
+  });
 }
 
 function renderCmpTops(orgA, orgB, dataA, dataB, metrics) {
