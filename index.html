@@ -5977,7 +5977,7 @@ function mkDonut(shorts, normal, color, size=160) {
         var circ = ${circ.toFixed(2)};
         var target = ${targetDash.toFixed(2)};
         var pctTarget = ${Math.round(shortsRatio * 100)};
-        var duration = 1800;
+        var duration = 3000;
         var start = null;
         // 초기 상태: 전체 숨김
         el.style.strokeDasharray = circ + ' ' + circ;
@@ -5998,7 +5998,7 @@ function mkDonut(shorts, normal, color, size=160) {
         });
       }
       // DOM 준비 후 약간의 딜레이를 두고 실행
-      setTimeout(runDonut_${uid}, 200);
+      setTimeout(runDonut_${uid}, 400);
     })();
     <\/script>` : '';
 
