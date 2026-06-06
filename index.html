@@ -285,14 +285,6 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 28px; font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--ink-1);
-  font-variant-numeric: tabular-nums;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-}
-.hero-side .val.visible {
-  opacity: 1;
-  transform: translateY(0);
 }
 .hero-side .val.blue { color: var(--blue); }
 @media (max-width: 720px) {
@@ -1980,6 +1972,95 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   background: white; border: 1.5px solid var(--ink-1);
   padding: 20px 22px; margin-bottom: 24px;
   display: flex; align-items: center; gap: 32px;
+}
+
+/* ── 인사이트 사이드바 (단독 기관 분석 전용) */
+.solo-top-with-sidebar {
+  display: grid;
+  grid-template-columns: 1fr 192px;
+  gap: 28px;
+  align-items: start;
+}
+.solo-insight-sidebar {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1px;
+}
+.si-block {
+  padding: 14px 0 13px;
+  border-bottom: 1px solid var(--line);
+}
+.si-block:last-child { border-bottom: none; }
+.si-label {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 10px; letter-spacing: 0.08em;
+  color: var(--ink-4); text-transform: uppercase;
+  margin-bottom: 9px;
+}
+.si-big {
+  font-size: 28px; font-weight: 700;
+  color: var(--blue); letter-spacing: -0.03em; line-height: 1;
+}
+.si-sub {
+  font-size: 11px; color: var(--ink-3);
+  margin-top: 4px; line-height: 1.5;
+}
+.si-bar-track {
+  margin-top: 9px; height: 4px;
+  background: var(--paper-3); border: 0.5px solid var(--line);
+}
+.si-bar-fill {
+  height: 100%; background: var(--blue);
+  width: 0; transition: width 1.4s cubic-bezier(0.22,1,0.36,1);
+}
+.si-ratio-row { display: flex; gap: 3px; height: 22px; }
+.si-ratio-seg {
+  height: 100%; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; font-weight: 600;
+}
+.si-ratio-shorts { background: var(--blue); color: white; }
+.si-ratio-normal {
+  background: var(--paper-3); color: var(--ink-3);
+  border: 0.5px solid var(--line);
+}
+.si-ratio-labels {
+  display: flex; justify-content: space-between;
+  margin-top: 5px;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 10px; color: var(--ink-4);
+}
+.si-cmp-rows { display: flex; flex-direction: column; gap: 10px; }
+.si-cmp-row { display: flex; flex-direction: column; gap: 4px; }
+.si-cmp-head { display: flex; justify-content: space-between; align-items: baseline; }
+.si-cmp-lbl {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 11px; color: var(--ink-3);
+}
+.si-cmp-val { font-size: 12px; font-weight: 700; color: var(--ink-1); letter-spacing: -0.02em; }
+.si-cmp-val.blue { color: var(--blue); }
+.si-cmp-track { height: 4px; background: var(--paper-3); border: 0.5px solid var(--line); }
+.si-cmp-fill { height: 100%; width: 0; transition: width 1.3s cubic-bezier(0.22,1,0.36,1); }
+.si-cmp-fill-avg { background: var(--line-2); }
+.si-cmp-fill-top { background: var(--blue); }
+.si-multiplier {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  display: flex; align-items: baseline; gap: 5px;
+}
+.si-mult-x { font-size: 22px; font-weight: 700; color: var(--blue); letter-spacing: -0.03em; line-height: 1; }
+.si-mult-sub { font-family: 'Pretendard', -apple-system, sans-serif; font-size: 11px; color: var(--ink-3); line-height: 1.5; }
+@media (max-width: 720px) {
+  .solo-top-with-sidebar { grid-template-columns: 1fr; }
+  .solo-insight-sidebar {
+    flex-direction: row; flex-wrap: wrap; gap: 0;
+    border-top: 1px solid var(--line); padding-top: 0;
+  }
+  .si-block {
+    flex: 1; min-width: 140px;
+    padding: 12px 16px 12px 0;
+    border-bottom: none; border-right: 1px solid var(--line);
+  }
+  .si-block:last-child { border-right: none; }
 }
 .solo-type-label {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -4339,26 +4420,8 @@ function initApp(json) {
   const totalStr = totalCnt.toLocaleString();
   const weeksCnt = (m.weeks || []).length || (m.files || '?');
   document.getElementById('headerMeta').textContent = `${totalStr} ITEMS · ${weeksCnt} WEEKS`;
-
-  // ── 카운트업 애니메이션 ──────────────────────────────────────────
-  function heroCountUp(id, toVal, formatFn, duration, delay) {
-    const el = document.getElementById(id);
-    setTimeout(() => {
-      el.classList.add('visible');
-      const start = performance.now();
-      function tick(now) {
-        const t = Math.min((now - start) / duration, 1);
-        const ease = 1 - Math.pow(1 - t, 4);
-        el.textContent = formatFn(toVal * ease);
-        if (t < 1) requestAnimationFrame(tick);
-        else el.textContent = formatFn(toVal);
-      }
-      requestAnimationFrame(tick);
-    }, delay);
-  }
-
-  heroCountUp('heroBigCount', totalCnt,  v => fmtN(Math.round(v)), 1600, 300);
-  heroCountUp('heroWeeks',    weeksCnt,  v => `${Math.round(v)} WEEKS`, 1800, 600);
+  document.getElementById('heroBigCount').textContent = fmtN(totalCnt);
+  document.getElementById('heroWeeks').textContent = `${weeksCnt} WEEKS`;
 
   const orgSel = document.getElementById('orgFilter');
   orgSel.innerHTML = '<option value="">전체 기관</option>';
@@ -5654,14 +5717,107 @@ function renderSoloAnalysis(orgName, data, metrics) {
 
   const topSections = activeMetrics.map((mk, si) => {
     const sorted = [...data].sort((a,b)=>(b[mk]||0)-(a[mk]||0)).slice(0,5);
+
+    // ── 인사이트 계산
+    const totalMk   = data.reduce((s,d)=>s+(d[mk]||0), 0);
+    const top5sum   = sorted.reduce((s,d)=>s+(d[mk]||0), 0);
+    const avgAll    = data.length ? Math.round(totalMk / data.length) : 0;
+    const avgTop5   = sorted.length ? Math.round(top5sum / sorted.length) : 0;
+    const concPct   = totalMk > 0 ? Math.round(top5sum / totalMk * 100) : 0;
+    const multiplier = avgAll > 0 ? (avgTop5 / avgAll) : 0;
+    const shortsCount = data.filter(d=>d.t==='쇼츠').length;
+    const normalCount = data.filter(d=>d.t==='일반').length;
+    const shortsPct = data.length > 0 ? Math.round(shortsCount / data.length * 100) : 0;
+    const normalPct = 100 - shortsPct;
+    const sidId = `si_${mk}_${si}`;
+
+    const sidebar = `
+      <div class="solo-insight-sidebar">
+        <div class="si-block">
+          <div class="si-label">조회수 집중도</div>
+          <div class="si-big" id="${sidId}_conc">0%</div>
+          <div class="si-sub">전체 ${ML[mk]} 중<br>TOP 5가 차지하는 비중</div>
+          <div class="si-bar-track"><div class="si-bar-fill" id="${sidId}_concbar"></div></div>
+        </div>
+        <div class="si-block">
+          <div class="si-label">영상 유형 비율</div>
+          <div class="si-ratio-row">
+            <div class="si-ratio-seg si-ratio-shorts" style="width:${shortsPct}%">${shortsPct >= 20 ? '쇼츠' : ''}</div>
+            <div class="si-ratio-seg si-ratio-normal" style="width:${normalPct}%">${normalPct >= 20 ? '일반' : ''}</div>
+          </div>
+          <div class="si-ratio-labels"><span>${shortsPct}% · ${shortsCount}편</span><span>${normalPct}% · ${normalCount}편</span></div>
+        </div>
+        <div class="si-block">
+          <div class="si-label">채널 평균 vs TOP 5</div>
+          <div class="si-cmp-rows">
+            <div class="si-cmp-row">
+              <div class="si-cmp-head">
+                <span class="si-cmp-lbl">채널 평균</span>
+                <span class="si-cmp-val">${fmtN(avgAll)}</span>
+              </div>
+              <div class="si-cmp-track"><div class="si-cmp-fill si-cmp-fill-avg" id="${sidId}_avgbar"></div></div>
+            </div>
+            <div class="si-cmp-row">
+              <div class="si-cmp-head">
+                <span class="si-cmp-lbl">TOP 5 평균</span>
+                <span class="si-cmp-val blue">${fmtN(avgTop5)}</span>
+              </div>
+              <div class="si-cmp-track"><div class="si-cmp-fill si-cmp-fill-top" id="${sidId}_topbar"></div></div>
+            </div>
+          </div>
+          <div class="si-multiplier">
+            <div class="si-mult-x" id="${sidId}_mult">0x</div>
+            <div class="si-mult-sub">채널 평균보다<br>높은 ${ML[mk]}</div>
+          </div>
+        </div>
+      </div>`;
+
     return `
       <div class="solo-top-wrap">
         <div class="solo-top-header">
           <div class="solo-top-title">TOP 5 · ${ML[mk]} 기준</div>
           <div class="solo-top-tag">${esc(orgName)}</div>
         </div>
-        ${sorted.map((d,i)=>mkVidRow(d,i,`solo_${mk}_${si}`)).join('')}
-      </div>`;
+        <div class="solo-top-with-sidebar">
+          <div>${sorted.map((d,i)=>mkVidRow(d,i,`solo_${mk}_${si}`)).join('')}</div>
+          ${sidebar}
+        </div>
+      </div>
+      <script>
+        (function() {
+          var concPct = ${concPct}, mult = ${multiplier.toFixed(1)};
+          var avgRatio = ${avgAll > 0 ? Math.round(avgAll / avgTop5 * 100) : 0};
+          setTimeout(function() {
+            var concBar = document.getElementById('${sidId}_concbar');
+            var concEl  = document.getElementById('${sidId}_conc');
+            var avgBar  = document.getElementById('${sidId}_avgbar');
+            var topBar  = document.getElementById('${sidId}_topbar');
+            var multEl  = document.getElementById('${sidId}_mult');
+            if (!concBar) return;
+            concBar.style.width = concPct + '%';
+            avgBar.style.width  = avgRatio + '%';
+            topBar.style.width  = '100%';
+            var s1 = performance.now();
+            function tickConc(now) {
+              var t = Math.min((now - s1) / 1200, 1);
+              var e = 1 - Math.pow(1 - t, 3);
+              concEl.textContent = Math.round(concPct * e) + '%';
+              if (t < 1) requestAnimationFrame(tickConc);
+              else concEl.textContent = concPct + '%';
+            }
+            requestAnimationFrame(tickConc);
+            var s2 = performance.now();
+            function tickMult(now) {
+              var t = Math.min((now - s2) / 1300, 1);
+              var e = 1 - Math.pow(1 - t, 3);
+              multEl.textContent = (mult * e).toFixed(1) + 'x';
+              if (t < 1) requestAnimationFrame(tickMult);
+              else multEl.textContent = mult + 'x';
+            }
+            requestAnimationFrame(tickMult);
+          }, 250);
+        })();
+      <\/script>`;
   }).join('');
 
   document.getElementById('cmpChartWrap').innerHTML = '';
