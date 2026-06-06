@@ -5705,6 +5705,11 @@ function renderSoloAnalysis(orgName, data, metrics) {
 
   drawOnWhenVisible('soloTrendSvg', 2200, 100);
 
+  // 도넛 애니메이션 (innerHTML 주입 후 DOM 페인트 대기)
+  setTimeout(() => {
+    document.querySelectorAll('#cmpTypeChart svg[data-donut-id]').forEach(svg => animateDonut(svg));
+  }, 120);
+
   // ── 상위 영상 TOP 5
   const activeMetrics = metrics.length ? metrics : ['v'];
   const ML = {v:'조회수', l:'좋아요', c:'댓글수'};
@@ -5933,84 +5938,59 @@ function renderCmpDiff(orgA, orgB, statA, statB, metrics) {
     </div>`;
 }
 
+// innerHTML 주입 후 animateDonut(id)를 별도로 호출해야 함
 function mkDonut(shorts, normal, color, size=160) {
   const total = shorts + normal || 1;
   const shortsRatio = shorts / total;
   const R = 56, cx = size/2, cy = size/2, sw = 18;
-  const tau = Math.PI * 2;
-  const startAngle = -Math.PI/2;
-  const endAngle = startAngle + tau * shortsRatio;
-  const x1 = cx + R * Math.cos(startAngle);
-  const y1 = cy + R * Math.sin(startAngle);
-  const x2 = cx + R * Math.cos(endAngle);
-  const y2 = cy + R * Math.sin(endAngle);
-  const largeArc = shortsRatio > 0.5 ? 1 : 0;
-
-  // 고유 ID로 애니메이션 타겟 지정
+  const circ = 2 * Math.PI * R;
   const uid = 'donut_' + Math.random().toString(36).slice(2, 8);
-  const circ = tau * R;
-  const targetDash = circ * shortsRatio;
 
-  let shortsPath;
-  if (shortsRatio >= 1) {
-    shortsPath = `<circle id="${uid}" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"
-      stroke-dasharray="${circ}" stroke-dashoffset="${circ}"/>`;
-  } else if (shortsRatio <= 0) {
-    shortsPath = '';
-  } else {
-    // arc를 dashoffset으로 애니메이션하기 위해 전체 원 circle + clip 대신
-    // circumference 기반 dasharray 기법 사용
-    shortsPath = `<circle id="${uid}" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"
-      stroke-dasharray="${targetDash.toFixed(2)} ${(circ - targetDash).toFixed(2)}"
-      stroke-dashoffset="${(circ * 0.25).toFixed(2)}"
-      style="stroke-dasharray:${circ.toFixed(2)};stroke-dashoffset:${(circ + circ * 0.25).toFixed(2)};transform-origin:center"/>`;
-  }
+  // arc는 처음에 완전히 숨김 (dashoffset = circ) → animateDonut()이 채움
+  const arcEl = shortsRatio <= 0 ? '' :
+    `<circle id="${uid}_arc" cx="${cx}" cy="${cy}" r="${R}"
+      fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"
+      stroke-dasharray="${circ.toFixed(2)}"
+      stroke-dashoffset="${circ.toFixed(2)}"
+      transform="rotate(-90 ${cx} ${cy})"/>`;
 
-  // 퍼센트 카운트업 + 원호 애니메이션을 위한 인라인 스크립트
-  const animScript = shortsRatio > 0 ? `
-    <script>
-    (function() {
-      function runDonut_${uid}() {
-        var el = document.getElementById('${uid}');
-        var pctEls = document.querySelectorAll('[data-donut-pct="${uid}"]');
-        if (!el) return;
-        var circ = ${circ.toFixed(2)};
-        var target = ${targetDash.toFixed(2)};
-        var pctTarget = ${Math.round(shortsRatio * 100)};
-        var duration = 3000;
-        var start = null;
-        // 초기 상태: 전체 숨김
-        el.style.strokeDasharray = circ + ' ' + circ;
-        el.style.strokeDashoffset = circ * 1.25;
-        requestAnimationFrame(function tick(ts) {
-          if (!start) start = ts;
-          var t = Math.min((ts - start) / duration, 1);
-          var ease = 1 - Math.pow(1 - t, 3);
-          var cur = target * ease;
-          el.style.strokeDasharray = cur.toFixed(2) + ' ' + (circ - cur).toFixed(2);
-          el.style.strokeDashoffset = (circ * 0.25).toFixed(2);
-          pctEls.forEach(function(p){ p.textContent = Math.round(pctTarget * ease) + '%'; });
-          if (t < 1) requestAnimationFrame(tick);
-          else {
-            el.style.strokeDasharray = target.toFixed(2) + ' ' + (circ - target).toFixed(2);
-            pctEls.forEach(function(p){ p.textContent = pctTarget + '%'; });
-          }
-        });
-      }
-      // DOM 준비 후 약간의 딜레이를 두고 실행
-      setTimeout(runDonut_${uid}, 400);
-    })();
-    <\/script>` : '';
-
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" data-donut-id="${uid}" data-donut-ratio="${shortsRatio.toFixed(6)}">
     <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--paper-3)" stroke-width="${sw}"/>
-    ${shortsRatio >= 1
-      ? `<circle id="${uid}" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"/>`
-      : shortsRatio <= 0 ? ''
-      : `<circle id="${uid}" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${color}" stroke-width="${sw}" opacity="0.85"/>`
+    ${arcEl}
+    <text id="${uid}_pct" x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central"
+      font-family="'Pretendard',-apple-system,sans-serif" font-size="20" font-weight="700" fill="var(--ink-1)">0%</text>
+  </svg>`;
+}
+
+function animateDonut(svgEl) {
+  if (!svgEl) return;
+  const uid       = svgEl.dataset.donutId;
+  const ratio     = parseFloat(svgEl.dataset.donutRatio);
+  const arc       = document.getElementById(uid + '_arc');
+  const pctEl     = document.getElementById(uid + '_pct');
+  const pctTarget = Math.round(ratio * 100);
+  if (!arc) {
+    // shortsRatio === 0인 경우 텍스트만 업데이트
+    if (pctEl) pctEl.textContent = '0%';
+    return;
+  }
+  const circ    = parseFloat(arc.getAttribute('stroke-dasharray'));
+  const target  = circ * ratio;
+  const duration = 2400;
+  let start = null;
+  requestAnimationFrame(function tick(ts) {
+    if (!start) start = ts;
+    const t    = Math.min((ts - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const cur  = target * ease;
+    arc.setAttribute('stroke-dashoffset', (circ - cur).toFixed(2));
+    if (pctEl) pctEl.textContent = Math.round(pctTarget * ease) + '%';
+    if (t < 1) requestAnimationFrame(tick);
+    else {
+      arc.setAttribute('stroke-dashoffset', (circ - target).toFixed(2));
+      if (pctEl) pctEl.textContent = pctTarget + '%';
     }
-    <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-family="'Pretendard',-apple-system,sans-serif" font-size="20" font-weight="700" fill="var(--ink-1)" data-donut-pct="${uid}">${Math.round(shortsRatio*100)}%</text>
-  </svg>${animScript}`;
+  });
 }
 
 function renderCmpTypeChart(orgA, orgB, statA, statB) {
@@ -6050,6 +6030,11 @@ function renderCmpTypeChart(orgA, orgB, statA, statB) {
         ${mkCol(orgB, statB, COLOR_B_HEX)}
       </div>
     </div>`;
+
+  // innerHTML 주입 직후 DOM이 페인트된 다음 애니메이션 실행
+  setTimeout(() => {
+    document.querySelectorAll('#cmpTypeChart svg[data-donut-id]').forEach(svg => animateDonut(svg));
+  }, 120);
 }
 
 function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
