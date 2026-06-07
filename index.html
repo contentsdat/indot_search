@@ -5149,6 +5149,23 @@ function drawOnWhenVisible(svgId, duration = 1000, stagger = 80, lineOnly = fals
 }
 
 // ─── 구독자 그래프 렌더 ───
+// 구독자 순위 계산
+function calcSubRank(orgName) {
+  if (!SUBSCRIBER_DB || !orgName || !SUBSCRIBER_DB[orgName]) return null;
+  const orgs = Object.keys(SUBSCRIBER_DB);
+  const total = orgs.length;
+  if (total === 0) return null;
+  // 각 기관의 최신 구독자 수 (null 제외 마지막 값)
+  const getLatest = org => {
+    const vals = Object.values(SUBSCRIBER_DB[org].data).filter(v => v !== null && v !== undefined);
+    return vals.length ? vals[vals.length - 1] : 0;
+  };
+  const sorted = [...orgs].sort((a, b) => getLatest(b) - getLatest(a));
+  const rank = sorted.indexOf(orgName) + 1;
+  if (rank === 0) return null;
+  return { rank, total };
+}
+
 function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const wrap = document.getElementById('cmpSubscriberWrap');
   if (!cmpShowSubscriber) { wrap.innerHTML = ''; return; }
@@ -5260,6 +5277,20 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const growthOf = vals => { const nz = vals.filter(v=>v!==null); return nz.length >= 2 ? nz[nz.length-1] - nz[0] : null; };
   const growthA  = hasA ? growthOf(valsA) : null;
   const growthB  = hasB ? growthOf(valsB) : null;
+  // 단일 분석 시 구독자 순위 계산
+  const isSolo = hasA && !hasB;
+  const subRankA = isSolo ? calcSubRank(orgA) : null;
+
+  const mkRankBadge = (ri) => {
+    if (!ri) return '';
+    const pct = Math.round(ri.rank / ri.total * 100);
+    const isTop = pct <= 50;
+    const badge = isTop
+      ? `<span style="display:inline-block;margin-left:6px;padding:1px 6px;font-size:9px;font-weight:700;letter-spacing:0.04em;background:var(--blue-tint);color:var(--blue);border-radius:2px">상위 ${pct}%</span>`
+      : '';
+    return `<span style="font-size:14px;font-weight:600;letter-spacing:-0.02em">${ri.rank}위 / ${ri.total}개${badge}</span>`;
+  };
+
   const statItems = [
     hasA && latestA !== null ? `<div class="cmp-subscriber-stat">
       <span class="lbl" style="color:${COLOR_A}">${esc(orgA)}</span>
@@ -5306,6 +5337,10 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       </div>
       <div class="cmp-subscriber-stat-row">
         ${statItems.join('')}
+        ${subRankA ? `<div class="cmp-subscriber-stat">
+          <span class="lbl">구독자 순위</span>
+          ${mkRankBadge(subRankA)}
+        </div>` : ''}
         <div class="cmp-subscriber-stat" style="margin-left:auto">
           <span class="lbl">데이터 기간</span>
           <span style="font-size:14px;font-weight:600;letter-spacing:-0.02em">${allMonths[0]} ~ ${allMonths[allMonths.length-1]}</span>
@@ -6179,14 +6214,15 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
 
   // ── 이중 Y축 레이아웃 ──
   // 왼쪽 패딩(Y축 레이블용) / 오른쪽 패딩
-  const W = 800, H = 190;
+  const W = 800, H = 200;
   const padL = 44, padR = 44, padTop = 14, padBot = 22;
   const chartW = W - padL - padR;  // 실제 그래프 너비
   const chartH = H - padTop - padBot;
   const n = allMonths.length;
 
-  const METRIC_COLORS = { v: '#378ADD', l: '#1D9E75', c: '#BA7517' };
-  const METRIC_SW     = { v: 1.6, l: 1.4, c: 1.2 };
+  const METRIC_COLORS   = { v: '#378ADD', l: '#1D9E75', c: '#BA7517' }; // A기관 — 진한 색
+  const METRIC_COLORS_B = { v: '#85B7EB', l: '#5DCAA5', c: '#EF9F27' }; // B기관 — 연한 색 (같은 계열)
+  const METRIC_SW       = { v: 1.6, l: 1.4, c: 1.2 };
 
   // 조회수(v) 축과 좋아요+댓글(l,c) 축 분리
   const vMetrics  = metrics.filter(m => m === 'v');
@@ -6239,24 +6275,22 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
     let prevLabel = '';
     vTicks.forEach(t => {
       const label = fmtTick(t);
-      if (label === prevLabel) return; // 중복 레이블 skip
+      if (label === prevLabel) return;
       prevLabel = label;
       const y = yOfV(t);
       yAxisSvg += `<text x="${padL-5}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#378ADD">${label}</text>`;
     });
-    yAxisSvg += `<text x="${padL-5}" y="${padTop-3}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="#378ADD" font-weight="700">조회수</text>`;
   }
   // 오른쪽 Y축 (좋아요+댓글)
   if (lcMax) {
     let prevLabel = '';
     lcTicks.forEach(t => {
       const label = fmtTick(t);
-      if (label === prevLabel) return; // 중복 레이블 skip
+      if (label === prevLabel) return;
       prevLabel = label;
       const y = yOfLC(t);
       yAxisSvg += `<text x="${W-padR+5}" y="${(y+3.5).toFixed(1)}" text-anchor="start" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#888">${label}</text>`;
     });
-    yAxisSvg += `<text x="${W-padR+5}" y="${padTop-3}" text-anchor="start" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="#888" font-weight="700">좋아요·댓글</text>`;
   }
 
   // ── 라인 경로 생성 ──
@@ -6271,20 +6305,21 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
   metrics.forEach((mk) => {
     const serA = allMonths.map(m => byMonA[mk][m]||0);
     const serB = allMonths.map(m => byMonB[mk][m]||0);
-    const yOf  = mk === 'v' ? yOfV : yOfLC;
-    const color = METRIC_COLORS[mk] || '#378ADD';
-    const sw    = METRIC_SW[mk] || 2;
+    const yOf    = mk === 'v' ? yOfV : yOfLC;
+    const colorA = METRIC_COLORS[mk]   || '#378ADD';
+    const colorB = METRIC_COLORS_B[mk] || '#85B7EB';
+    const sw     = METRIC_SW[mk] || 2;
 
     const ptA = serA.map((v,i) => [xOf(i), yOf(v)]);
     const ptB = serB.map((v,i) => [xOf(i), yOf(v)]);
 
     svgPaths += `
-      <path d="${mkArea(ptA, baseY)}" fill="${color}" opacity="0.05"/>
-      <path d="${mkPath(ptA)}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>
-      <path d="${mkArea(ptB, baseY)}" fill="${color}" opacity="0.05"/>
-      <path d="${mkPath(ptB)}" fill="none" stroke="${color}" stroke-width="1.2" stroke-dasharray="14 7" stroke-linejoin="round" stroke-linecap="butt"/>
-      <circle cx="${ptA[ptA.length-1][0].toFixed(1)}" cy="${ptA[ptA.length-1][1].toFixed(1)}" r="3" fill="${color}"/>
-      <circle cx="${ptB[ptB.length-1][0].toFixed(1)}" cy="${ptB[ptB.length-1][1].toFixed(1)}" r="3" fill="${color}" opacity="0.7"/>`;
+      <path d="${mkArea(ptA, baseY)}" fill="${colorA}" opacity="0.05"/>
+      <path d="${mkPath(ptA)}" fill="none" stroke="${colorA}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="${mkArea(ptB, baseY)}" fill="${colorB}" opacity="0.06"/>
+      <path d="${mkPath(ptB)}" fill="none" stroke="${colorB}" stroke-width="1.4" stroke-dasharray="14 7" stroke-linejoin="round" stroke-linecap="butt"/>
+      <circle cx="${ptA[ptA.length-1][0].toFixed(1)}" cy="${ptA[ptA.length-1][1].toFixed(1)}" r="3" fill="${colorA}"/>
+      <circle cx="${ptB[ptB.length-1][0].toFixed(1)}" cy="${ptB[ptB.length-1][1].toFixed(1)}" r="3" fill="${colorB}"/>`;
   });
 
   // x-axis month labels
@@ -6295,26 +6330,28 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
     xLabels += `<text x="${xOf(i).toFixed(1)}" y="${H-4}" text-anchor="middle" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="var(--ink-4)">${m.slice(2)}</text>`;
   });
 
-  // 범례: 기관(실선/점선 회색) + 지표(색상)
+  // 범례: 기관(실선/점선) + 지표(색상) — A진한/B연한 쌍
   const mkLineSvg = (color, dashed, sw=2) => {
-    const da = dashed ? 'stroke-dasharray="5 4"' : '';
-    return `<svg width="26" height="12" viewBox="0 0 26 12" style="vertical-align:middle;flex-shrink:0"><line x1="0" y1="6" x2="26" y2="6" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" ${da}/></svg>`;
+    const da = dashed ? 'stroke-dasharray="5 4" stroke-linecap="butt"' : 'stroke-linecap="round"';
+    return `<svg width="26" height="12" viewBox="0 0 26 12" style="vertical-align:middle;flex-shrink:0"><line x1="0" y1="6" x2="26" y2="6" stroke="${color}" stroke-width="${sw}" ${da}/></svg>`;
   };
 
+  // 지표가 1개면 A기관/B기관 구분만, 복수면 지표별 색상 쌍으로
   const orgLegendItems = `
     <span style="display:inline-flex;align-items:center;gap:5px">
-      ${mkLineSvg('#666', false, 2)}
+      ${mkLineSvg('#555', false, 2)}
       <span style="font-size:12px;font-weight:600;color:var(--ink-2)">${esc(orgA||'A')}</span>
     </span>
     <span style="display:inline-flex;align-items:center;gap:5px">
-      ${mkLineSvg('#666', true, 2)}
-      <span style="font-size:12px;font-weight:600;color:var(--ink-2)">${esc(orgB||'B')}</span>
+      ${mkLineSvg('#aaa', true, 1.8)}
+      <span style="font-size:12px;font-weight:600;color:var(--ink-3)">${esc(orgB||'B')}</span>
     </span>`;
 
   const metricLegendItems = metrics.map(mk => {
-    const color = METRIC_COLORS[mk] || '#378ADD';
-    return `<span style="display:inline-flex;align-items:center;gap:5px">
-      ${mkLineSvg(color, false, 2.5)}
+    const colorA = METRIC_COLORS[mk]   || '#378ADD';
+    const colorB = METRIC_COLORS_B[mk] || '#85B7EB';
+    return `<span style="display:inline-flex;align-items:center;gap:4px">
+      ${mkLineSvg(colorA, false, 2)}${mkLineSvg(colorB, true, 1.8)}
       <span style="font-size:12px;color:var(--ink-2);font-weight:600">${METRIC_LABEL[mk]}</span>
     </span>`;
   }).join('');
@@ -6341,15 +6378,21 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
           ${legendRows}
         </div>
       </div>
-      <div class="cmp-chart-canvas" id="cmpChartCanvas">
-        <svg id="cmpChartSvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
-          style="width:100%;display:block"
-          data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-padt="${padTop}" data-padb="${padBot}"
-          data-months="${allMonths.join(',')}"
-          onmousemove="cmpChartHover(event,this)" onmouseleave="cmpChartHideTooltip()"
-        >${yAxisSvg}${svgPaths}${xLabels}
-          <line id="cmpHoverLine" x1="0" y1="${padTop}" x2="0" y2="${padTop+chartH}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
-        </svg>
+      <div style="position:relative">
+        <div style="display:flex;justify-content:space-between;padding:0 ${(padR/W*100).toFixed(1)}% 4px ${(padL/W*100).toFixed(1)}%;font-family:'Pretendard',-apple-system,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.02em">
+          ${vMax  ? `<span style="color:#378ADD">조회수</span>` : '<span></span>'}
+          ${lcMax ? `<span style="color:#999">좋아요·댓글</span>` : ''}
+        </div>
+        <div class="cmp-chart-canvas" id="cmpChartCanvas">
+          <svg id="cmpChartSvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
+            style="width:100%;display:block"
+            data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-padt="${padTop}" data-padb="${padBot}"
+            data-months="${allMonths.join(',')}"
+            onmousemove="cmpChartHover(event,this)" onmouseleave="cmpChartHideTooltip()"
+          >${yAxisSvg}${svgPaths}${xLabels}
+            <line id="cmpHoverLine" x1="0" y1="${padTop}" x2="0" y2="${padTop+chartH}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
+          </svg>
+        </div>
       </div>
     </div>`;
 
