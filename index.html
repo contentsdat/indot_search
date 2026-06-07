@@ -1974,6 +1974,18 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   flex-shrink: 0;
   letter-spacing: 0;
 }
+.solo-rank-num {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px; font-weight: 600;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+.solo-rank-badge-divider {
+  display: inline-block;
+  width: 1px; height: 10px;
+  background: var(--line-2);
+  flex-shrink: 0;
+}
 .solo-share-label {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 10px; color: var(--ink-4);
@@ -4034,9 +4046,8 @@ async function loadAllMembers() {
   }
 
   try {
-    const res = await callAdminFn({ action: 'get_all_users' });
-    if (res.error) throw new Error(res.error);
-    const { data } = res;
+    const { data, error } = await _supabase.rpc('get_all_users');
+    if (error) throw error;
 
     if (!data || data.length === 0) {
       wrap.innerHTML = `<div class="admin-no-result">등록된 회원이 없습니다.</div>`;
@@ -4094,20 +4105,6 @@ async function loadAllMembers() {
   }
 }
 
-// ── Edge Function 호출 헬퍼 ──────────────────────────────────────────
-async function callAdminFn(body) {
-  const session = (await _supabase.auth.getSession()).data.session;
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/inkdot-admin`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session?.access_token}`,
-    },
-    body: JSON.stringify(body),
-  });
-  return res.json();
-}
-
 async function saveMemberPlan(userId, email) {
   const plan = document.getElementById(`msel_${userId}`)?.value;
   const stsEl = document.getElementById(`msts_${userId}`);
@@ -4118,8 +4115,10 @@ async function saveMemberPlan(userId, email) {
   if (stsEl) { stsEl.textContent = '저장 중…'; stsEl.style.color = 'var(--ink-4)'; }
 
   try {
-    const res = await callAdminFn({ action: 'save_plan', userId, plan, email });
-    if (res.error) throw new Error(res.error);
+    const { error } = await _supabase
+      .from('user_plans')
+      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
+    if (error) throw error;
     if (stsEl) { stsEl.textContent = '✓'; stsEl.style.color = '#059669'; }
     setTimeout(() => { if (stsEl) stsEl.textContent = ''; }, 2500);
   } catch (e) {
@@ -4127,6 +4126,7 @@ async function saveMemberPlan(userId, email) {
   }
   btn.disabled = false;
 }
+
 
 async function adminSearchUser() {
   const email = document.getElementById('adminSearchEmail').value.trim();
@@ -4141,12 +4141,17 @@ async function adminSearchUser() {
   }
 
   try {
-    const res = await callAdminFn({ action: 'search_user', email });
-    if (res.error) throw new Error(res.error);
-    const data = res.data;
+    // user_plans 테이블에서 이메일로 검색 (join)
+    // 실제 구현: admin API 또는 RPC 필요 (anon key는 제한됨)
+    // 여기서는 user_plans 테이블에 email 컬럼이 있다고 가정
+    const { data, error } = await _supabase
+      .from('user_plans')
+      .select('user_id, plan, email, full_name')
+      .eq('email', email)
+      .limit(5);
 
-    if (!data?.length) {
-      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.</div>`;
+    if (error || !data?.length) {
+      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.<br><small style="color:var(--ink-5)">user_plans 테이블에 email 컬럼이 있어야 합니다.</small></div>`;
       return;
     }
 
@@ -4157,7 +4162,7 @@ async function adminSearchUser() {
         <select class="admin-plan-select" id="psel_${u.user_id}">
           ${['free','basic','pro','admin'].map(p => `<option value="${p}" ${u.plan===p?'selected':''}>${PLAN_FEATURES[p]?.label||p}</option>`).join('')}
         </select>
-        <button class="admin-save-plan" onclick="saveUserPlan('${esc(u.user_id)}', '${esc(u.email||email)}')">저장</button>
+        <button class="admin-save-plan" onclick="saveUserPlan('${u.user_id}', '${esc(u.email||email)}')">저장</button>
         <span class="admin-user-msg" id="umsg_${u.user_id}"></span>
       </div>`).join('');
   } catch (e) {
@@ -4175,8 +4180,11 @@ async function saveUserPlan(userId, email) {
   if (msgEl) msgEl.textContent = '저장 중...';
 
   try {
-    const res = await callAdminFn({ action: 'save_plan', userId, plan, email });
-    if (res.error) throw new Error(res.error);
+    const { error } = await _supabase
+      .from('user_plans')
+      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
+
+    if (error) throw error;
     if (msgEl) { msgEl.textContent = '✓ 저장됨'; msgEl.style.color = '#059669'; }
     setTimeout(() => { if (msgEl) msgEl.textContent = ''; }, 3000);
   } catch (e) {
@@ -5257,16 +5265,40 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const growthOf = vals => { const nz = vals.filter(v=>v!==null); return nz.length >= 2 ? nz[nz.length-1] - nz[0] : null; };
   const growthA  = hasA ? growthOf(valsA) : null;
   const growthB  = hasB ? growthOf(valsB) : null;
+
+  // 구독자 순위 계산 — SUBSCRIBER_DB 내 모든 기관의 최신값 기준
+  function calcSubRank(orgName, latestVal) {
+    if (!SUBSCRIBER_DB || latestVal === null) return null;
+    const allLatest = Object.entries(SUBSCRIBER_DB).map(([o, d]) => {
+      const vals = Object.values(d.data || {}).filter(v => v !== null && v !== undefined);
+      return { o, val: vals.length ? vals[vals.length - 1] : 0 };
+    }).sort((a, b) => b.val - a.val);
+    const total = allLatest.length;
+    const rank  = allLatest.findIndex(d => d.o === orgName) + 1;
+    if (!rank) return null;
+    const rankPct = Math.round(rank / total * 100);
+    const badge = rankPct <= 50
+      ? `<span class="solo-rank-badge-divider" style="height:10px;background:var(--line-2)"></span><span class="solo-rank-badge">상위 ${rankPct}%</span>`
+      : '';
+    return `<div style="display:flex;align-items:center;gap:5px;margin-top:4px">
+      <span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">구독자 순위</span>
+      <span class="solo-rank-num">${rank}위 / ${total}개</span>
+      ${badge}
+    </div>`;
+  }
+
   const statItems = [
     hasA && latestA !== null ? `<div class="cmp-subscriber-stat">
       <span class="lbl" style="color:${COLOR_A}">${esc(orgA)}</span>
       <span class="val" style="color:${COLOR_A}">${fmtN(latestA)}</span>
       ${growthA !== null ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">${growthA>=0?'+':''}${fmtN(growthA)} (기간 중)</span>` : ''}
+      ${calcSubRank(orgA, latestA) || ''}
     </div>` : '',
     hasB && latestB !== null ? `<div class="cmp-subscriber-stat">
       <span class="lbl" style="color:${COLOR_B_HEX}">${esc(orgB)}</span>
       <span class="val" style="color:${COLOR_B_HEX}">${fmtN(latestB)}</span>
       ${growthB !== null ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">${growthB>=0?'+':''}${fmtN(growthB)} (기간 중)</span>` : ''}
+      ${calcSubRank(orgB, latestB) || ''}
     </div>` : '',
   ].filter(Boolean);
 
@@ -5551,21 +5583,25 @@ function renderSoloAnalysis(orgName, data, metrics) {
     const lPct  = grandL  > 0 ? (totalL / grandL  * 100) : 0;
     const cPct  = grandC  > 0 ? (totalC / grandC  * 100) : 0;
 
-    function shareCell(rank, pct, label) {
-      const topPct = Math.ceil(rank / totalOrgCount * 100);
+    function shareCell(rank, label) {
+      const rankPct = totalOrgCount > 0 ? (rank / totalOrgCount * 100) : 100;
+      const badge = rankPct <= 50
+        ? `<span class="solo-rank-badge-divider"></span><span class="solo-rank-badge">상위 ${Math.round(rankPct)}%</span>`
+        : '';
       return `<div class="solo-share-cell">
         <div class="solo-share-row">
           <span class="solo-share-label">${label}</span>
-          <span class="solo-rank-badge">상위 ${topPct}%</span>
+          <span class="solo-rank-num">${rank}위 / ${totalOrgCount}개</span>
+          ${badge}
         </div>
       </div>`;
     }
 
     shareHTML = `<div class="solo-share-grid">
-      ${shareCell(vRank,  vPct,  '전체 대비 영상 수')}
-      ${shareCell(vwRank, vwPct, '전체 대비 조회수')}
-      ${shareCell(lRank,  lPct,  '전체 대비 좋아요')}
-      ${shareCell(cRank,  cPct,  '전체 대비 댓글')}
+      ${shareCell(vRank,  '전체 대비 영상 수')}
+      ${shareCell(vwRank, '전체 대비 조회수')}
+      ${shareCell(lRank,  '전체 대비 좋아요')}
+      ${shareCell(cRank,  '전체 대비 댓글')}
     </div>`;
   }
 
