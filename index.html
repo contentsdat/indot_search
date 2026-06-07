@@ -1950,6 +1950,57 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   .solo-stat:nth-child(2) { border-right: none; }
   .solo-stat:nth-child(3) { border-top: 1px solid var(--line); }
 }
+/* 비중·순위 행 */
+.solo-share-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line);
+}
+.solo-share-cell {
+  padding: 10px 20px 12px;
+  border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 5px;
+}
+.solo-share-cell:last-child { border-right: none; }
+.solo-share-row {
+  display: flex; align-items: center; gap: 6px;
+}
+.solo-rank-badge {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px; font-weight: 600;
+  color: var(--blue-2);
+  background: var(--blue-tint);
+  border-radius: 3px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+.solo-share-pct {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11px; font-weight: 600;
+  color: var(--ink-3);
+}
+.solo-share-bar-track {
+  height: 2px;
+  background: var(--paper-3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.solo-share-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--blue);
+}
+.solo-share-label {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px; color: var(--ink-4);
+  letter-spacing: 0.01em;
+}
+@media (max-width: 640px) {
+  .solo-share-grid { grid-template-columns: repeat(2, 1fr); }
+  .solo-share-cell:nth-child(2) { border-right: none; }
+  .solo-share-cell:nth-child(3) { border-top: 1px solid var(--line); }
+  .solo-share-cell:nth-child(4) { border-top: 1px solid var(--line); }
+}
 .solo-trend-wrap {
   border-top: 1px solid var(--line);
   padding: 18px 22px 16px;
@@ -5472,6 +5523,68 @@ function renderSoloAnalysis(orgName, data, metrics) {
   const orgType = data[0]?.ot || '';
   const er = totalV > 0 ? ((totalL + totalC) / totalV * 100).toFixed(2) : '—';
 
+  // ── 전체 기관 대비 비중·순위 사전 계산
+  const allOrgs = DB ? [...new Set(DB.data.map(d=>d.o).filter(Boolean))] : [];
+  const totalOrgCount = allOrgs.length;
+
+  function calcOrgStat(orgList, dbData, key) {
+    return orgList.map(o => ({
+      o,
+      val: dbData.filter(d=>d.o===o).reduce((s,d)=>s+(d[key]||0),0)
+    })).sort((a,b)=>b.val-a.val);
+  }
+  function calcOrgVideoCount(orgList, dbData) {
+    return orgList.map(o => ({
+      o,
+      val: dbData.filter(d=>d.o===o).length
+    })).sort((a,b)=>b.val-a.val);
+  }
+
+  let shareHTML = '';
+  if (totalOrgCount > 1 && DB) {
+    const dbData = DB.data;
+    const videoRanked = calcOrgVideoCount(allOrgs, dbData);
+    const viewRanked  = calcOrgStat(allOrgs, dbData, 'v');
+    const likeRanked  = calcOrgStat(allOrgs, dbData, 'l');
+    const cmtRanked   = calcOrgStat(allOrgs, dbData, 'c');
+
+    const grandV = videoRanked.reduce((s,d)=>s+d.val,0);
+    const grandVw = viewRanked.reduce((s,d)=>s+d.val,0);
+    const grandL  = likeRanked.reduce((s,d)=>s+d.val,0);
+    const grandC  = cmtRanked.reduce((s,d)=>s+d.val,0);
+
+    const vRank  = videoRanked.findIndex(d=>d.o===orgName)+1;
+    const vwRank = viewRanked.findIndex(d=>d.o===orgName)+1;
+    const lRank  = likeRanked.findIndex(d=>d.o===orgName)+1;
+    const cRank  = cmtRanked.findIndex(d=>d.o===orgName)+1;
+
+    const vPct  = grandV  > 0 ? (data.length / grandV  * 100) : 0;
+    const vwPct = grandVw > 0 ? (totalV / grandVw * 100) : 0;
+    const lPct  = grandL  > 0 ? (totalL / grandL  * 100) : 0;
+    const cPct  = grandC  > 0 ? (totalC / grandC  * 100) : 0;
+
+    function shareCell(rank, pct, label) {
+      const barW = Math.min(100, Math.round(pct * 5));
+      return `<div class="solo-share-cell">
+        <div class="solo-share-row">
+          <span class="solo-rank-badge">${rank}위 / ${totalOrgCount}</span>
+          <span class="solo-share-pct">${pct.toFixed(1)}%</span>
+        </div>
+        <div class="solo-share-bar-track">
+          <div class="solo-share-bar-fill" style="width:${barW}%"></div>
+        </div>
+        <span class="solo-share-label">${label}</span>
+      </div>`;
+    }
+
+    shareHTML = `<div class="solo-share-grid">
+      ${shareCell(vRank,  vPct,  '전체 대비 영상 수')}
+      ${shareCell(vwRank, vwPct, '전체 대비 조회수')}
+      ${shareCell(lRank,  lPct,  '전체 대비 좋아요')}
+      ${shareCell(cRank,  cPct,  '전체 대비 댓글')}
+    </div>`;
+  }
+
   // ── 요약 카드
   document.getElementById('cmpSummaryBand').innerHTML = `
     <div class="solo-card">
@@ -5502,6 +5615,7 @@ function renderSoloAnalysis(orgName, data, metrics) {
           <span class="sub">참여율(ER) ${er}%</span>
         </div>
       </div>
+      ${shareHTML}
     </div>`;
 
   // ── 영상 유형 + 월별 트렌드
