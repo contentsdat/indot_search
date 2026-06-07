@@ -5267,7 +5267,7 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const growthB  = hasB ? growthOf(valsB) : null;
 
   // 구독자 순위 계산 — SUBSCRIBER_DB 내 모든 기관의 최신값 기준
-  function calcSubRank(orgName, latestVal) {
+  function calcSubRank(orgName, latestVal, color) {
     if (!SUBSCRIBER_DB || latestVal === null) return null;
     const allLatest = Object.entries(SUBSCRIBER_DB).map(([o, d]) => {
       const vals = Object.values(d.data || {}).filter(v => v !== null && v !== undefined);
@@ -5280,25 +5280,23 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
     const badge = rankPct <= 50
       ? `<span class="solo-rank-badge-divider" style="height:10px;background:var(--line-2)"></span><span class="solo-rank-badge">상위 ${rankPct}%</span>`
       : '';
-    return `<div style="display:flex;align-items:center;gap:5px;margin-top:4px">
-      <span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">구독자 순위</span>
-      <span class="solo-rank-num">${rank}위 / ${total}개</span>
-      ${badge}
-    </div>`;
+    const nameSpan = color ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;font-weight:700;color:${color}">${esc(orgName)}</span><span class="solo-rank-badge-divider" style="height:10px;background:var(--line-2)"></span>` : '';
+    return `${nameSpan}<span class="solo-rank-num">${rank}위 / ${total}개</span>${badge}`;
   }
+
+  const subRankA = calcSubRank(orgA, latestA, hasB ? COLOR_A : null);
+  const subRankB = calcSubRank(orgB, latestB, hasA ? COLOR_B_HEX : null);
 
   const statItems = [
     hasA && latestA !== null ? `<div class="cmp-subscriber-stat">
       <span class="lbl" style="color:${COLOR_A}">${esc(orgA)}</span>
       <span class="val" style="color:${COLOR_A}">${fmtN(latestA)}</span>
       ${growthA !== null ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">${growthA>=0?'+':''}${fmtN(growthA)} (기간 중)</span>` : ''}
-      ${calcSubRank(orgA, latestA) || ''}
     </div>` : '',
     hasB && latestB !== null ? `<div class="cmp-subscriber-stat">
       <span class="lbl" style="color:${COLOR_B_HEX}">${esc(orgB)}</span>
       <span class="val" style="color:${COLOR_B_HEX}">${fmtN(latestB)}</span>
       ${growthB !== null ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">${growthB>=0?'+':''}${fmtN(growthB)} (기간 중)</span>` : ''}
-      ${calcSubRank(orgB, latestB) || ''}
     </div>` : '',
   ].filter(Boolean);
 
@@ -5344,9 +5342,16 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       </div>
       <div class="cmp-subscriber-stat-row">
         ${statItems.join('')}
-        <div class="cmp-subscriber-stat" style="margin-left:auto">
-          <span class="lbl">데이터 기간</span>
-          <span style="font-size:14px;font-weight:600;letter-spacing:-0.02em">${allMonths[0]} ~ ${allMonths[allMonths.length-1]}</span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:20px">
+          ${(subRankA || subRankB) ? `<div class="cmp-subscriber-stat" style="align-items:flex-end">
+            <span class="lbl">구독자 순위</span>
+            ${subRankA ? `<div style="display:flex;align-items:center;gap:5px">${subRankA}</div>` : ''}
+            ${subRankB ? `<div style="display:flex;align-items:center;gap:5px">${subRankB}</div>` : ''}
+          </div>` : ''}
+          <div class="cmp-subscriber-stat" style="align-items:flex-end">
+            <span class="lbl">데이터 기간</span>
+            <span style="font-size:14px;font-weight:600;letter-spacing:-0.02em">${allMonths[0]} ~ ${allMonths[allMonths.length-1]}</span>
+          </div>
         </div>
       </div>
     </div>`;
