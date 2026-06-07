@@ -1979,17 +1979,6 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   font-size: 11px; font-weight: 600;
   color: var(--ink-3);
 }
-.solo-share-bar-track {
-  height: 2px;
-  background: var(--paper-3);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.solo-share-bar-fill {
-  height: 100%;
-  border-radius: 99px;
-  background: var(--blue);
-}
 .solo-share-label {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 10px; color: var(--ink-4);
@@ -5564,16 +5553,12 @@ function renderSoloAnalysis(orgName, data, metrics) {
     const cPct  = grandC  > 0 ? (totalC / grandC  * 100) : 0;
 
     function shareCell(rank, pct, label) {
-      const barW = Math.min(100, Math.round(pct * 5));
       return `<div class="solo-share-cell">
+        <span class="solo-share-label">${label}</span>
         <div class="solo-share-row">
           <span class="solo-rank-badge">${rank}위 / ${totalOrgCount}</span>
           <span class="solo-share-pct">${pct.toFixed(1)}%</span>
         </div>
-        <div class="solo-share-bar-track">
-          <div class="solo-share-bar-fill" style="width:${barW}%"></div>
-        </div>
-        <span class="solo-share-label">${label}</span>
       </div>`;
     }
 
