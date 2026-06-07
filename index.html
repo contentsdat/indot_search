@@ -1956,9 +1956,9 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   border-top: 1px solid var(--line);
 }
 .solo-share-cell {
-  padding: 10px 20px 12px;
+  padding: 8px 20px;
   border-right: 1px solid var(--line);
-  display: flex; flex-direction: column; gap: 5px;
+  display: flex; align-items: center;
 }
 .solo-share-cell:last-child { border-right: none; }
 .solo-share-row {
@@ -5554,8 +5554,8 @@ function renderSoloAnalysis(orgName, data, metrics) {
 
     function shareCell(rank, pct, label) {
       return `<div class="solo-share-cell">
-        <span class="solo-share-label">${label}</span>
         <div class="solo-share-row">
+          <span class="solo-share-label">${label}</span>
           <span class="solo-rank-badge">${rank}위 / ${totalOrgCount}</span>
           <span class="solo-share-pct">${pct.toFixed(1)}%</span>
         </div>
