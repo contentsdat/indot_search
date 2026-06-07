@@ -5226,12 +5226,13 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
     if (seg.length > 1) pathD += seg.map(([x,y],j)=>(j===0?`M${x.toFixed(1)},${y.toFixed(1)}`:`L${x.toFixed(1)},${y.toFixed(1)}`)).join(' ');
     if (!pathD) return '';
     const dashAttr = dash ? `stroke-dasharray="${dash}"` : '';
+    const sw = dash ? '1.4' : '2';
     // 면적: 전체 pts 기준 (null 건너뜀)
     const firstPt = linePts.find(p=>p);
     const lastPt  = [...linePts].reverse().find(p=>p);
     const areaClose = ` L${lastPt[0].toFixed(1)},${H} L${firstPt[0].toFixed(1)},${H} Z`;
     return `<path d="${pathD}${areaClose}" fill="${color}" opacity="0.04"/>
-            <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" ${dashAttr} stroke-linejoin="round" stroke-linecap="round"/>`;
+            <path d="${pathD}" fill="none" stroke="${color}" stroke-width="${sw}" ${dashAttr} stroke-linejoin="round" stroke-linecap="round"/>`;
   }
 
   // X축 라벨 — 지표 그래프와 완전히 동일한 방식 (font-size:8, y:H+14, text-anchor:middle)
@@ -5271,14 +5272,14 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
     </div>` : '',
   ].filter(Boolean);
 
-  // 툴팁용 데이터 직렬화 — cmpChart와 동일한 포맷
-  const tooltipData = JSON.stringify({
+  // 툴팁 데이터를 전역 변수로 저장
+  window.__subTooltipData = {
     months: allMonths,
     orgA: orgA || '', orgB: orgB || '',
     valsA: valsA ? allMonths.map(m => SUBSCRIBER_DB[orgA]?.data[m] ?? null) : null,
     valsB: valsB ? allMonths.map(m => SUBSCRIBER_DB[orgB]?.data[m] ?? null) : null,
     colorA: COLOR_A, colorB: COLOR_B_HEX,
-  }).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  };
 
   wrap.innerHTML = `
     <div class="cmp-chart-wrap">
@@ -5292,13 +5293,12 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       <div class="cmp-chart-canvas" id="subChartCanvas">
         <svg id="subChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="xMidYMid meet"
           style="width:100%;display:block"
-          data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padx="${padX}" data-n="${n}"
           data-months="${allMonths.join(',')}"
           onmousemove="subChartHover(event,this)" onmouseleave="subChartHideTooltip()"
         >
           ${mkSeriesSvg(valsA, COLOR_A, '')}
-          ${mkSeriesSvg(valsB, COLOR_B_HEX, '6 3')}
+          ${mkSeriesSvg(valsB, COLOR_B_HEX, '12 8')}
           ${xLabels}
           <line id="subHoverLine" x1="0" y1="0" x2="0" y2="${H}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
         </svg>
@@ -5335,9 +5335,8 @@ function subChartHover(e, svg) {
   const line = document.getElementById('subHoverLine');
   if (line) { line.setAttribute('x1', xPos); line.setAttribute('x2', xPos); line.setAttribute('opacity', '0.5'); }
 
-  let ttData;
-  try { ttData = JSON.parse(svg.dataset.tooltip.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')); }
-  catch { return; }
+  let ttData = window.__subTooltipData;
+  if (!ttData) return;
 
   const month = ttData.months[idx];
   const vA = ttData.valsA ? ttData.valsA[idx] : null;
@@ -6239,7 +6238,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
       const y = yOfV(t);
       yAxisSvg += `<text x="${padL-5}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#378ADD">${t>=10000?Math.round(t/10000)+'만':t>=1000?Math.round(t/1000)+'k':t}</text>`;
     });
-    yAxisSvg += `<text x="${padL-5}" y="${padTop+8}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="#378ADD" font-weight="700">조회수</text>`;
+    yAxisSvg += `<text x="${padL-5}" y="${padTop-3}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="#378ADD" font-weight="700">조회수</text>`;
   }
   // 오른쪽 Y축 (좋아요+댓글)
   if (lcMax) {
@@ -6247,7 +6246,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
       const y = yOfLC(t);
       yAxisSvg += `<text x="${W-padR+5}" y="${(y+3.5).toFixed(1)}" text-anchor="start" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#888">${t>=10000?Math.round(t/10000)+'만':t>=1000?Math.round(t/1000)+'k':t}</text>`;
     });
-    yAxisSvg += `<text x="${W-padR+5}" y="${padTop+8}" text-anchor="start" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="#888" font-weight="700">좋아요·댓글</text>`;
+    yAxisSvg += `<text x="${W-padR+5}" y="${padTop-3}" text-anchor="start" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="#888" font-weight="700">좋아요·댓글</text>`;
   }
 
   // ── 라인 경로 생성 ──
@@ -6273,7 +6272,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
       <path d="${mkArea(ptA, baseY)}" fill="${color}" opacity="0.05"/>
       <path d="${mkPath(ptA)}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>
       <path d="${mkArea(ptB, baseY)}" fill="${color}" opacity="0.05"/>
-      <path d="${mkPath(ptB)}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="${mkPath(ptB)}" fill="none" stroke="${color}" stroke-width="1.4" stroke-dasharray="12 8" stroke-linejoin="round" stroke-linecap="round"/>
       <circle cx="${ptA[ptA.length-1][0].toFixed(1)}" cy="${ptA[ptA.length-1][1].toFixed(1)}" r="3" fill="${color}"/>
       <circle cx="${ptB[ptB.length-1][0].toFixed(1)}" cy="${ptB[ptB.length-1][1].toFixed(1)}" r="3" fill="${color}" opacity="0.7"/>`;
   });
@@ -6315,13 +6314,14 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
     ${metricLegendItems}`;
 
   // 툴팁용 데이터 직렬화
-  const tooltipData = JSON.stringify({
+  // 툴팁 데이터를 전역 변수로 저장 (HTML 속성 이스케이프 문제 완전 우회)
+  window.__cmpTooltipData = {
     months: allMonths,
     orgA: orgA||'A', orgB: orgB||'B',
     seriesA: metrics.map(mk => ({ mk, data: allMonths.map(m => byMonA[mk][m]||0) })),
     seriesB: metrics.map(mk => ({ mk, data: allMonths.map(m => byMonB[mk][m]||0) })),
     colorA: COLOR_A, colorB: COLOR_B_HEX,
-  }).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  };
 
   document.getElementById('cmpChartWrap').innerHTML = `
     <div class="cmp-chart-wrap">
@@ -6334,7 +6334,6 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
       <div class="cmp-chart-canvas" id="cmpChartCanvas">
         <svg id="cmpChartSvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
           style="width:100%;display:block"
-          data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-padt="${padTop}" data-padb="${padBot}"
           data-months="${allMonths.join(',')}"
           onmousemove="cmpChartHover(event,this)" onmouseleave="cmpChartHideTooltip()"
@@ -6450,9 +6449,8 @@ function cmpChartHover(e, svg) {
   const line = document.getElementById('cmpHoverLine');
   if (line) { line.setAttribute('x1', xPos); line.setAttribute('x2', xPos); line.setAttribute('opacity','0.5'); }
 
-  let ttData;
-  try { ttData = JSON.parse(svg.dataset.tooltip.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')); }
-  catch { return; }
+  let ttData = window.__cmpTooltipData;
+  if (!ttData) return;
 
   const ML = {v:'조회수', l:'좋아요', c:'댓글수'};
   const MC = {v:'#378ADD', l:'#1D9E75', c:'#BA7517'};
@@ -6470,41 +6468,42 @@ function cmpChartHover(e, svg) {
     const mk = sA.mk;
     const color = MC[mk] || '#fff';
     rows += `
-      <div style="margin-top:${mi>0?'7px':'0'};padding-top:${mi>0?'7px':'0'};border-top:${mi>0?'1px solid rgba(255,255,255,0.1)':'none'}">
-        <div style="font-size:10px;color:#aaa;letter-spacing:0.03em;text-transform:uppercase;margin-bottom:5px">${ML[mk]}</div>
-        <table style="width:100%;border-collapse:collapse">
-          <tr>
-            <td style="padding:0 6px 4px 0;white-space:nowrap">${mkLineSvgTT(color, false)}</td>
-            <td style="padding:0 0 4px 0;color:#ccc;white-space:nowrap">${esc(ttData.orgA)}</td>
-            <td style="padding:0 0 4px 8px;font-weight:700;color:#fff;text-align:right;white-space:nowrap">${fmtN(vA)}</td>
-          </tr>
-          <tr>
-            <td style="padding:0 6px 0 0;white-space:nowrap">${mkLineSvgTT(color, true)}</td>
-            <td style="padding:0;color:#ccc;white-space:nowrap">${esc(ttData.orgB)}</td>
-            <td style="padding:0 0 0 8px;font-weight:700;color:#fff;text-align:right;white-space:nowrap">${fmtN(vB)}</td>
-          </tr>
-        </table>
+      <div style="margin-top:${mi>0?'8px':'0'};padding-top:${mi>0?'8px':'0'};border-top:${mi>0?'1px solid rgba(255,255,255,0.12)':'none'}">
+        <div style="font-size:9px;color:#888;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px">${ML[mk]}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:5px">
+          <div style="display:flex;align-items:center;gap:5px;min-width:0">
+            ${mkLineSvgTT(color, false)}
+            <span style="color:#bbb;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ttData.orgA)}</span>
+          </div>
+          <span style="color:#fff;font-weight:700;font-size:11px;white-space:nowrap;flex-shrink:0">${fmtN(vA)}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="display:flex;align-items:center;gap:5px;min-width:0">
+            ${mkLineSvgTT(color, true)}
+            <span style="color:#bbb;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ttData.orgB)}</span>
+          </div>
+          <span style="color:#fff;font-weight:700;font-size:11px;white-space:nowrap;flex-shrink:0">${fmtN(vB)}</span>
+        </div>
       </div>`;
   });
 
-  // fixed 툴팁 — SVG 좌표계 완전 우회
+  // fixed 툴팁
   let tip = document.getElementById('cmpChartTooltipFixed');
   if (!tip) {
     tip = document.createElement('div');
     tip.id = 'cmpChartTooltipFixed';
-    tip.style.cssText = `
-      position:fixed;pointer-events:none;z-index:9999;
-      background:rgba(24,24,24,0.93);color:#fff;
-      border-radius:8px;padding:10px 13px;min-width:200px;
-      font-family:'Pretendard',-apple-system,sans-serif;
-      font-size:11px;line-height:1;
-      box-shadow:0 4px 16px rgba(0,0,0,0.22);
-      display:none;
-    `;
     document.body.appendChild(tip);
   }
-  tip.innerHTML = `<div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:8px">${month}</div>${rows}`;
-  tip.style.display = 'block';
+  tip.style.cssText = `
+    position:fixed;pointer-events:none;z-index:9999;
+    background:rgba(20,20,20,0.95);color:#fff;
+    border-radius:8px;padding:11px 14px;min-width:210px;max-width:280px;
+    font-family:'Pretendard',-apple-system,sans-serif;
+    font-size:11px;line-height:1.4;
+    box-shadow:0 4px 20px rgba(0,0,0,0.35);
+    display:block;
+  `;
+  tip.innerHTML = `<div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:10px;letter-spacing:-0.01em">${month}</div>${rows}`;
 
   const tipW = tip.offsetWidth || 200;
   const tipH = tip.offsetHeight || 100;
