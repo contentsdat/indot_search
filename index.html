@@ -6302,6 +6302,8 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
           data-months="${allMonths.join(',')}"
           onmousemove="cmpChartHover(event,this)" onmouseleave="cmpChartHideTooltip()"
         >${svgPaths}${xLabels}
+          ${metrics.includes('v') ? `<text x="2" y="10" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" font-weight="600" fill="#378ADD">조회수</text>` : ''}
+          ${metrics.some(m=>m==='l'||m==='c') ? `<text x="${W-2}" y="10" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" font-weight="600" fill="#888" text-anchor="end">좋아요·댓글</text>` : ''}
           <line id="cmpHoverLine" x1="0" y1="0" x2="0" y2="${H}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
         </svg>
         <div id="cmpChartTooltip" style="
