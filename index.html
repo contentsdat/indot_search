@@ -5155,11 +5155,19 @@ function calcSubRank(orgName) {
   const orgs = Object.keys(SUBSCRIBER_DB);
   const total = orgs.length;
   if (total === 0) return null;
-  // 각 기관의 최신 구독자 수 (null 제외 마지막 값)
+  // 날짜 키를 정렬해서 가장 최신 구독자 수 가져오기
   const getLatest = org => {
-    const vals = Object.values(SUBSCRIBER_DB[org].data).filter(v => v !== null && v !== undefined);
-    return vals.length ? vals[vals.length - 1] : 0;
+    const data = SUBSCRIBER_DB[org].data;
+    if (!data) return 0;
+    const sortedKeys = Object.keys(data).sort();
+    for (let i = sortedKeys.length - 1; i >= 0; i--) {
+      const v = data[sortedKeys[i]];
+      if (v !== null && v !== undefined) return v;
+    }
+    return 0;
   };
+  const myLatest = getLatest(orgName);
+  if (myLatest === 0) return null; // 데이터 없으면 순위 표시 안 함
   const sorted = [...orgs].sort((a, b) => getLatest(b) - getLatest(a));
   const rank = sorted.indexOf(orgName) + 1;
   if (rank === 0) return null;
