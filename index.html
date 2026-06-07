@@ -5281,7 +5281,7 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       ? `<span class="solo-rank-badge-divider" style="height:10px;background:var(--line-2)"></span><span class="solo-rank-badge">상위 ${rankPct}%</span>`
       : '';
     const nameSpan = color ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;font-weight:700;color:${color}">${esc(orgName)}</span><span class="solo-rank-badge-divider" style="height:10px;background:var(--line-2)"></span>` : '';
-    return `${nameSpan}<span style="font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink-3)">${rank}위 / ${total}개</span>${badge}`;
+    return `${nameSpan}<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:14px;font-weight:600;letter-spacing:-0.02em;color:var(--ink-2)">${rank}위 / ${total}개</span>${badge}`;
   }
 
   const subRankA = calcSubRank(orgA, latestA, hasB ? COLOR_A : null);
@@ -5345,8 +5345,8 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
         <div style="margin-left:auto;display:flex;align-items:center;gap:40px">
           ${(subRankA || subRankB) ? `<div class="cmp-subscriber-stat" style="align-items:flex-end">
             <span class="lbl">구독자 순위</span>
-            ${subRankA ? `<div style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;letter-spacing:-0.02em">${subRankA}</div>` : ''}
-            ${subRankB ? `<div style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;letter-spacing:-0.02em">${subRankB}</div>` : ''}
+            ${subRankA ? `<div style="display:flex;align-items:center;gap:6px">${subRankA}</div>` : ''}
+            ${subRankB ? `<div style="display:flex;align-items:center;gap:6px">${subRankB}</div>` : ''}
           </div>` : ''}
           <div class="cmp-subscriber-stat" style="align-items:flex-end">
             <span class="lbl">데이터 기간</span>
