@@ -1974,17 +1974,10 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   flex-shrink: 0;
   letter-spacing: 0;
 }
-.solo-rank-num {
+.solo-share-pct {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 10px; font-weight: 600;
+  font-size: 11px; font-weight: 600;
   color: var(--ink-3);
-  flex-shrink: 0;
-}
-.solo-rank-badge-divider {
-  display: inline-block;
-  width: 1px; height: 10px;
-  background: var(--line-2);
-  flex-shrink: 0;
 }
 .solo-share-label {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -2208,7 +2201,8 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   width: 100%;
   position: relative; overflow: visible;
 }
-.cmp-chart-canvas svg { display: block; width: 100%; height: 100%; }
+.cmp-chart-canvas svg { display: block; width: 100%; height: auto; }
+/* SVG 내부 letterbox 여백을 없애기 위해 SVG 자체 배경 없음 */
 
 /* TOP videos */
 .cmp-tops {
@@ -5265,28 +5259,6 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const growthOf = vals => { const nz = vals.filter(v=>v!==null); return nz.length >= 2 ? nz[nz.length-1] - nz[0] : null; };
   const growthA  = hasA ? growthOf(valsA) : null;
   const growthB  = hasB ? growthOf(valsB) : null;
-
-  // 구독자 순위 계산 — SUBSCRIBER_DB 내 모든 기관의 최신값 기준
-  function calcSubRank(orgName, latestVal, color) {
-    if (!SUBSCRIBER_DB || latestVal === null) return null;
-    const allLatest = Object.entries(SUBSCRIBER_DB).map(([o, d]) => {
-      const vals = Object.values(d.data || {}).filter(v => v !== null && v !== undefined);
-      return { o, val: vals.length ? vals[vals.length - 1] : 0 };
-    }).sort((a, b) => b.val - a.val);
-    const total = allLatest.length;
-    const rank  = allLatest.findIndex(d => d.o === orgName) + 1;
-    if (!rank) return null;
-    const rankPct = Math.round(rank / total * 100);
-    const badge = rankPct <= 50
-      ? `<span class="solo-rank-badge-divider" style="height:10px;background:var(--line-2)"></span><span class="solo-rank-badge">상위 ${rankPct}%</span>`
-      : '';
-    const nameSpan = color ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;font-weight:700;color:${color}">${esc(orgName)}</span><span class="solo-rank-badge-divider" style="height:10px;background:var(--line-2)"></span>` : '';
-    return `${nameSpan}<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:14px;font-weight:600;letter-spacing:-0.02em;color:var(--ink-2)">${rank}위 / ${total}개</span>${badge}`;
-  }
-
-  const subRankA = calcSubRank(orgA, latestA, hasB ? COLOR_A : null);
-  const subRankB = calcSubRank(orgB, latestB, hasA ? COLOR_B_HEX : null);
-
   const statItems = [
     hasA && latestA !== null ? `<div class="cmp-subscriber-stat">
       <span class="lbl" style="color:${COLOR_A}">${esc(orgA)}</span>
@@ -5318,9 +5290,9 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
           <span class="cmp-subscriber-note">월별 구독자 수</span>
         </div>
       </div>
-      <div class="cmp-chart-canvas" style="height:${H+20}px;position:relative" id="subChartCanvas">
-        <svg id="subChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="none"
-          style="width:100%;height:100%;display:block"
+      <div class="cmp-chart-canvas" id="subChartCanvas">
+        <svg id="subChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="xMidYMid meet"
+          style="width:100%;display:block"
           data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padx="${padX}" data-n="${n}"
           data-months="${allMonths.join(',')}"
@@ -5342,16 +5314,9 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       </div>
       <div class="cmp-subscriber-stat-row">
         ${statItems.join('')}
-        <div style="margin-left:auto;display:flex;align-items:center;gap:40px">
-          ${(subRankA || subRankB) ? `<div class="cmp-subscriber-stat" style="align-items:flex-end">
-            <span class="lbl">구독자 순위</span>
-            ${subRankA ? `<div style="display:flex;align-items:center;gap:6px">${subRankA}</div>` : ''}
-            ${subRankB ? `<div style="display:flex;align-items:center;gap:6px">${subRankB}</div>` : ''}
-          </div>` : ''}
-          <div class="cmp-subscriber-stat" style="align-items:flex-end">
-            <span class="lbl">데이터 기간</span>
-            <span style="font-size:14px;font-weight:600;letter-spacing:-0.02em">${allMonths[0]} ~ ${allMonths[allMonths.length-1]}</span>
-          </div>
+        <div class="cmp-subscriber-stat" style="margin-left:auto">
+          <span class="lbl">데이터 기간</span>
+          <span style="font-size:14px;font-weight:600;letter-spacing:-0.02em">${allMonths[0]} ~ ${allMonths[allMonths.length-1]}</span>
         </div>
       </div>
     </div>`;
@@ -5364,8 +5329,17 @@ function subChartHover(e, svg) {
   const W = +svg.dataset.w, H = +svg.dataset.h, padX = +svg.dataset.padx, n = +svg.dataset.n;
   if (n < 2) return;
 
-  const rect = svg.getBoundingClientRect();
-  const svgX = (e.clientX - rect.left) / rect.width * W;
+  // preserveAspectRatio="meet" 환경: getScreenCTM().inverse()로 정확한 SVG 내부 좌표 계산
+  let svgX;
+  try {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+    svgX = svgP.x;
+  } catch {
+    const rect = svg.getBoundingClientRect();
+    svgX = (e.clientX - rect.left) / rect.width * W;
+  }
   const idx = Math.min(n - 1, Math.max(0, Math.round((svgX - padX) / ((W - padX * 2) / (n - 1)))));
   const xPos = (idx / (n - 1)) * (W - padX * 2) + padX;
 
@@ -5588,25 +5562,21 @@ function renderSoloAnalysis(orgName, data, metrics) {
     const lPct  = grandL  > 0 ? (totalL / grandL  * 100) : 0;
     const cPct  = grandC  > 0 ? (totalC / grandC  * 100) : 0;
 
-    function shareCell(rank, label) {
-      const rankPct = totalOrgCount > 0 ? (rank / totalOrgCount * 100) : 100;
-      const badge = rankPct <= 50
-        ? `<span class="solo-rank-badge-divider"></span><span class="solo-rank-badge">상위 ${Math.round(rankPct)}%</span>`
-        : '';
+    function shareCell(rank, pct, label) {
       return `<div class="solo-share-cell">
         <div class="solo-share-row">
           <span class="solo-share-label">${label}</span>
-          <span class="solo-rank-num">${rank}위 / ${totalOrgCount}개</span>
-          ${badge}
+          <span class="solo-rank-badge">${rank}위 / ${totalOrgCount}</span>
+          <span class="solo-share-pct">${pct.toFixed(1)}%</span>
         </div>
       </div>`;
     }
 
     shareHTML = `<div class="solo-share-grid">
-      ${shareCell(vRank,  '전체 대비 영상 수')}
-      ${shareCell(vwRank, '전체 대비 조회수')}
-      ${shareCell(lRank,  '전체 대비 좋아요')}
-      ${shareCell(cRank,  '전체 대비 댓글')}
+      ${shareCell(vRank,  vPct,  '전체 대비 영상 수')}
+      ${shareCell(vwRank, vwPct, '전체 대비 조회수')}
+      ${shareCell(lRank,  lPct,  '전체 대비 좋아요')}
+      ${shareCell(cRank,  cPct,  '전체 대비 댓글')}
     </div>`;
   }
 
@@ -6204,7 +6174,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
     return;
   }
 
-  const W = 800, H = 420, padX = 8, padY = 20;
+  const W = 800, H = 180, padX = 8, padY = 12;
   const n = allMonths.length;
 
   // 지표별 색상, 기관은 실선/점선으로 구분
@@ -6294,16 +6264,14 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
           ${legendRows}
         </div>
       </div>
-      <div class="cmp-chart-canvas" style="height:${H+20}px;position:relative" id="cmpChartCanvas">
+      <div class="cmp-chart-canvas" id="cmpChartCanvas">
         <svg id="cmpChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="xMidYMid meet"
-          style="width:100%;height:100%;display:block"
+          style="width:100%;display:block"
           data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padx="${padX}" data-pady="${padY}"
           data-months="${allMonths.join(',')}"
           onmousemove="cmpChartHover(event,this)" onmouseleave="cmpChartHideTooltip()"
         >${svgPaths}${xLabels}
-          ${metrics.includes('v') ? `<text x="4" y="16" font-family="'Pretendard',-apple-system,sans-serif" font-size="11" font-weight="600" fill="#378ADD">조회수</text>` : ''}
-          ${metrics.some(m=>m==='l'||m==='c') ? `<text x="${W-4}" y="16" font-family="'Pretendard',-apple-system,sans-serif" font-size="11" font-weight="600" fill="#888" text-anchor="end">좋아요·댓글</text>` : ''}
           <line id="cmpHoverLine" x1="0" y1="0" x2="0" y2="${H}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
         </svg>
         <div id="cmpChartTooltip" style="
@@ -6314,7 +6282,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
           font-family:'Pretendard',-apple-system,sans-serif;
           font-size:11px;line-height:1;
           box-shadow:0 4px 16px rgba(0,0,0,0.22);
-          min-width:200px;max-width:260px;
+          white-space:nowrap;
         "></div>
       </div>
     </div>`;
@@ -6406,7 +6374,7 @@ function cmpChartHover(e, svg) {
   const months = td.months.split(',');
   const n = months.length; if (n < 2) return;
 
-  // xMidYMid meet 대응 — SVG 내부 좌표로 정확히 변환
+  // preserveAspectRatio="meet" 환경: getScreenCTM().inverse()로 정확한 SVG 내부 좌표 계산
   let svgX;
   try {
     const pt = svg.createSVGPoint();
@@ -6446,19 +6414,15 @@ function cmpChartHover(e, svg) {
     rows += `
       <div style="margin-top:${mi>0?'7px':'0'};padding-top:${mi>0?'7px':'0'};border-top:${mi>0?'1px solid rgba(255,255,255,0.1)':'none'}">
         <div style="font-size:10px;color:#aaa;letter-spacing:0.03em;text-transform:uppercase;margin-bottom:5px">${ML[mk]}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
-          <div style="display:flex;align-items:center;gap:6px;min-width:0">
-            ${mkLineSvgTT(color, false)}
-            <span style="color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(ttData.orgA)}</span>
-          </div>
-          <span style="font-weight:700;color:#fff;white-space:nowrap;flex-shrink:0">${fmtN(vA)}</span>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          ${mkLineSvgTT(color, false)}
+          <span style="color:#ccc">${esc(ttData.orgA)}</span>
+          <span style="margin-left:auto;padding-left:16px;font-weight:700;color:#fff">${fmtN(vA)}</span>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-          <div style="display:flex;align-items:center;gap:6px;min-width:0">
-            ${mkLineSvgTT(color, true)}
-            <span style="color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(ttData.orgB)}</span>
-          </div>
-          <span style="font-weight:700;color:#fff;white-space:nowrap;flex-shrink:0">${fmtN(vB)}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${mkLineSvgTT(color, true)}
+          <span style="color:#ccc">${esc(ttData.orgB)}</span>
+          <span style="margin-left:auto;padding-left:16px;font-weight:700;color:#fff">${fmtN(vB)}</span>
         </div>
       </div>`;
   });
