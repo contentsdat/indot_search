@@ -2205,7 +2205,7 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   border-radius: 50%; margin-right: 5px; vertical-align: middle;
 }
 .cmp-chart-canvas {
-  width: 100%; height: 160px;
+  width: 100%;
   position: relative; overflow: visible;
 }
 .cmp-chart-canvas svg { display: block; width: 100%; height: 100%; }
@@ -6295,7 +6295,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
         </div>
       </div>
       <div class="cmp-chart-canvas" style="height:${H+20}px;position:relative" id="cmpChartCanvas">
-        <svg id="cmpChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="none"
+        <svg id="cmpChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="xMidYMid meet"
           style="width:100%;height:100%;display:block"
           data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padx="${padX}" data-pady="${padY}"
@@ -6406,8 +6406,17 @@ function cmpChartHover(e, svg) {
   const months = td.months.split(',');
   const n = months.length; if (n < 2) return;
 
-  const rect = svg.getBoundingClientRect();
-  const svgX = (e.clientX - rect.left) / rect.width * W;
+  // xMidYMid meet 대응 — SVG 내부 좌표로 정확히 변환
+  let svgX;
+  try {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+    svgX = svgP.x;
+  } catch {
+    const rect = svg.getBoundingClientRect();
+    svgX = (e.clientX - rect.left) / rect.width * W;
+  }
 
   const idx = Math.min(n-1, Math.max(0, Math.round((svgX - padX) / ((W - padX*2) / (n-1)))));
   const xPos = (idx/(n-1))*(W-padX*2)+padX;
