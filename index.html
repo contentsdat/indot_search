@@ -6204,7 +6204,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
     return;
   }
 
-  const W = 800, H = 180, padX = 8, padY = 12;
+  const W = 800, H = 280, padX = 8, padY = 20;
   const n = allMonths.length;
 
   // 지표별 색상, 기관은 실선/점선으로 구분
@@ -6294,7 +6294,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
           ${legendRows}
         </div>
       </div>
-      <div class="cmp-chart-canvas" style="height:${H+20}px;position:relative" id="cmpChartCanvas">
+      <div class="cmp-chart-canvas" style="position:relative;width:100%;aspect-ratio:${W}/${H+18}" id="cmpChartCanvas">
         <svg id="cmpChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="none"
           style="width:100%;height:100%;display:block"
           data-tooltip="${tooltipData}"
@@ -6302,8 +6302,8 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
           data-months="${allMonths.join(',')}"
           onmousemove="cmpChartHover(event,this)" onmouseleave="cmpChartHideTooltip()"
         >${svgPaths}${xLabels}
-          ${metrics.includes('v') ? `<text x="2" y="10" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" font-weight="600" fill="#378ADD">조회수</text>` : ''}
-          ${metrics.some(m=>m==='l'||m==='c') ? `<text x="${W-2}" y="10" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" font-weight="600" fill="#888" text-anchor="end">좋아요·댓글</text>` : ''}
+          ${metrics.includes('v') ? `<text x="4" y="16" font-family="'Pretendard',-apple-system,sans-serif" font-size="11" font-weight="600" fill="#378ADD">조회수</text>` : ''}
+          ${metrics.some(m=>m==='l'||m==='c') ? `<text x="${W-4}" y="16" font-family="'Pretendard',-apple-system,sans-serif" font-size="11" font-weight="600" fill="#888" text-anchor="end">좋아요·댓글</text>` : ''}
           <line id="cmpHoverLine" x1="0" y1="0" x2="0" y2="${H}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
         </svg>
         <div id="cmpChartTooltip" style="
