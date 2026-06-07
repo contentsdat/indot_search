@@ -5226,13 +5226,14 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
     if (seg.length > 1) pathD += seg.map(([x,y],j)=>(j===0?`M${x.toFixed(1)},${y.toFixed(1)}`:`L${x.toFixed(1)},${y.toFixed(1)}`)).join(' ');
     if (!pathD) return '';
     const dashAttr = dash ? `stroke-dasharray="${dash}"` : '';
-    const sw = dash ? '1.0' : '1.6';
+    const sw = dash ? '1.2' : '1.6';
+    const linecap = dash ? 'butt' : 'round';
     // 면적: 전체 pts 기준 (null 건너뜀)
     const firstPt = linePts.find(p=>p);
     const lastPt  = [...linePts].reverse().find(p=>p);
     const areaClose = ` L${lastPt[0].toFixed(1)},${H} L${firstPt[0].toFixed(1)},${H} Z`;
     return `<path d="${pathD}${areaClose}" fill="${color}" opacity="0.04"/>
-            <path d="${pathD}" fill="none" stroke="${color}" stroke-width="${sw}" ${dashAttr} stroke-linejoin="round" stroke-linecap="round"/>`;
+            <path d="${pathD}" fill="none" stroke="${color}" stroke-width="${sw}" ${dashAttr} stroke-linejoin="round" stroke-linecap="${linecap}"/>`;
   }
 
   // X축 라벨 — 지표 그래프와 완전히 동일한 방식 (font-size:8, y:H+14, text-anchor:middle)
@@ -6226,6 +6227,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
 
   // ── Y축 눈금선 + 레이블 ──
   let yAxisSvg = '';
+  const fmtTick = t => t >= 100000000 ? Math.round(t/100000000)+'억' : t >= 10000 ? (t/10000)+'만' : t >= 1000 ? Math.round(t/1000)+'k' : t;
   // 배경 그리드: vTicks 기준 (없으면 lcTicks)
   const gridTicks = vTicks.length ? vTicks : lcTicks;
   gridTicks.forEach(t => {
@@ -6234,17 +6236,25 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
   });
   // 왼쪽 Y축 (조회수)
   if (vMax) {
+    let prevLabel = '';
     vTicks.forEach(t => {
+      const label = fmtTick(t);
+      if (label === prevLabel) return; // 중복 레이블 skip
+      prevLabel = label;
       const y = yOfV(t);
-      yAxisSvg += `<text x="${padL-5}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#378ADD">${t>=10000?Math.round(t/10000)+'만':t>=1000?Math.round(t/1000)+'k':t}</text>`;
+      yAxisSvg += `<text x="${padL-5}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#378ADD">${label}</text>`;
     });
     yAxisSvg += `<text x="${padL-5}" y="${padTop-3}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="#378ADD" font-weight="700">조회수</text>`;
   }
   // 오른쪽 Y축 (좋아요+댓글)
   if (lcMax) {
+    let prevLabel = '';
     lcTicks.forEach(t => {
+      const label = fmtTick(t);
+      if (label === prevLabel) return; // 중복 레이블 skip
+      prevLabel = label;
       const y = yOfLC(t);
-      yAxisSvg += `<text x="${W-padR+5}" y="${(y+3.5).toFixed(1)}" text-anchor="start" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#888">${t>=10000?Math.round(t/10000)+'만':t>=1000?Math.round(t/1000)+'k':t}</text>`;
+      yAxisSvg += `<text x="${W-padR+5}" y="${(y+3.5).toFixed(1)}" text-anchor="start" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#888">${label}</text>`;
     });
     yAxisSvg += `<text x="${W-padR+5}" y="${padTop-3}" text-anchor="start" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="#888" font-weight="700">좋아요·댓글</text>`;
   }
@@ -6272,7 +6282,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
       <path d="${mkArea(ptA, baseY)}" fill="${color}" opacity="0.05"/>
       <path d="${mkPath(ptA)}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>
       <path d="${mkArea(ptB, baseY)}" fill="${color}" opacity="0.05"/>
-      <path d="${mkPath(ptB)}" fill="none" stroke="${color}" stroke-width="1.0" stroke-dasharray="16 6" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="${mkPath(ptB)}" fill="none" stroke="${color}" stroke-width="1.2" stroke-dasharray="14 7" stroke-linejoin="round" stroke-linecap="butt"/>
       <circle cx="${ptA[ptA.length-1][0].toFixed(1)}" cy="${ptA[ptA.length-1][1].toFixed(1)}" r="3" fill="${color}"/>
       <circle cx="${ptB[ptB.length-1][0].toFixed(1)}" cy="${ptB[ptB.length-1][1].toFixed(1)}" r="3" fill="${color}" opacity="0.7"/>`;
   });
