@@ -4034,8 +4034,9 @@ async function loadAllMembers() {
   }
 
   try {
-    const { data, error } = await _supabase.rpc('get_all_users');
-    if (error) throw error;
+    const res = await callAdminFn({ action: 'get_all_users' });
+    if (res.error) throw new Error(res.error);
+    const { data } = res;
 
     if (!data || data.length === 0) {
       wrap.innerHTML = `<div class="admin-no-result">등록된 회원이 없습니다.</div>`;
@@ -4093,6 +4094,20 @@ async function loadAllMembers() {
   }
 }
 
+// ── Edge Function 호출 헬퍼 ──────────────────────────────────────────
+async function callAdminFn(body) {
+  const session = (await _supabase.auth.getSession()).data.session;
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/inkdot-admin`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session?.access_token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
 async function saveMemberPlan(userId, email) {
   const plan = document.getElementById(`msel_${userId}`)?.value;
   const stsEl = document.getElementById(`msts_${userId}`);
@@ -4103,10 +4118,8 @@ async function saveMemberPlan(userId, email) {
   if (stsEl) { stsEl.textContent = '저장 중…'; stsEl.style.color = 'var(--ink-4)'; }
 
   try {
-    const { error } = await _supabase
-      .from('user_plans')
-      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
-    if (error) throw error;
+    const res = await callAdminFn({ action: 'save_plan', userId, plan, email });
+    if (res.error) throw new Error(res.error);
     if (stsEl) { stsEl.textContent = '✓'; stsEl.style.color = '#059669'; }
     setTimeout(() => { if (stsEl) stsEl.textContent = ''; }, 2500);
   } catch (e) {
@@ -4114,7 +4127,6 @@ async function saveMemberPlan(userId, email) {
   }
   btn.disabled = false;
 }
-
 
 async function adminSearchUser() {
   const email = document.getElementById('adminSearchEmail').value.trim();
@@ -4129,17 +4141,12 @@ async function adminSearchUser() {
   }
 
   try {
-    // user_plans 테이블에서 이메일로 검색 (join)
-    // 실제 구현: admin API 또는 RPC 필요 (anon key는 제한됨)
-    // 여기서는 user_plans 테이블에 email 컬럼이 있다고 가정
-    const { data, error } = await _supabase
-      .from('user_plans')
-      .select('user_id, plan, email, full_name')
-      .eq('email', email)
-      .limit(5);
+    const res = await callAdminFn({ action: 'search_user', email });
+    if (res.error) throw new Error(res.error);
+    const data = res.data;
 
-    if (error || !data?.length) {
-      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.<br><small style="color:var(--ink-5)">user_plans 테이블에 email 컬럼이 있어야 합니다.</small></div>`;
+    if (!data?.length) {
+      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.</div>`;
       return;
     }
 
@@ -4150,7 +4157,7 @@ async function adminSearchUser() {
         <select class="admin-plan-select" id="psel_${u.user_id}">
           ${['free','basic','pro','admin'].map(p => `<option value="${p}" ${u.plan===p?'selected':''}>${PLAN_FEATURES[p]?.label||p}</option>`).join('')}
         </select>
-        <button class="admin-save-plan" onclick="saveUserPlan('${u.user_id}', '${esc(u.email||email)}')">저장</button>
+        <button class="admin-save-plan" onclick="saveUserPlan('${esc(u.user_id)}', '${esc(u.email||email)}')">저장</button>
         <span class="admin-user-msg" id="umsg_${u.user_id}"></span>
       </div>`).join('');
   } catch (e) {
@@ -4168,11 +4175,8 @@ async function saveUserPlan(userId, email) {
   if (msgEl) msgEl.textContent = '저장 중...';
 
   try {
-    const { error } = await _supabase
-      .from('user_plans')
-      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
-
-    if (error) throw error;
+    const res = await callAdminFn({ action: 'save_plan', userId, plan, email });
+    if (res.error) throw new Error(res.error);
     if (msgEl) { msgEl.textContent = '✓ 저장됨'; msgEl.style.color = '#059669'; }
     setTimeout(() => { if (msgEl) msgEl.textContent = ''; }, 3000);
   } catch (e) {
