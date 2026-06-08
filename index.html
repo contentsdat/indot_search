@@ -5338,7 +5338,7 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
           onmousemove="subChartHover(event,this)" onmouseleave="subChartHideTooltip()"
         >
           ${mkSeriesSvg(valsA, COLOR_A, '')}
-          ${mkSeriesSvg(valsB, COLOR_B_HEX, '16 6')}
+          ${mkSeriesSvg(valsB, COLOR_B_HEX, '20 10')}
           ${xLabels}
           <line id="subHoverLine" x1="0" y1="0" x2="0" y2="${H}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
         </svg>
@@ -6325,7 +6325,7 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
       <path d="${mkArea(ptA, baseY)}" fill="${colorA}" opacity="0.05"/>
       <path d="${mkPath(ptA)}" fill="none" stroke="${colorA}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>
       <path d="${mkArea(ptB, baseY)}" fill="${colorB}" opacity="0.06"/>
-      <path d="${mkPath(ptB)}" fill="none" stroke="${colorB}" stroke-width="1.4" stroke-dasharray="14 7" stroke-linejoin="round" stroke-linecap="butt"/>
+      <path d="${mkPath(ptB)}" fill="none" stroke="${colorB}" stroke-width="1.4" stroke-dasharray="20 10" stroke-linejoin="round" stroke-linecap="butt"/>
       <circle cx="${ptA[ptA.length-1][0].toFixed(1)}" cy="${ptA[ptA.length-1][1].toFixed(1)}" r="3" fill="${colorA}"/>
       <circle cx="${ptB[ptB.length-1][0].toFixed(1)}" cy="${ptB[ptB.length-1][1].toFixed(1)}" r="3" fill="${colorB}"/>`;
   });
@@ -6387,9 +6387,9 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
         </div>
       </div>
       <div style="position:relative">
-        <div style="display:flex;justify-content:space-between;padding:0 ${(padR/W*100).toFixed(1)}% 4px ${(padL/W*100).toFixed(1)}%;font-family:'Pretendard',-apple-system,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.02em">
-          ${vMax  ? `<span style="color:#378ADD">조회수</span>` : '<span></span>'}
-          ${lcMax ? `<span style="color:#999">좋아요·댓글</span>` : ''}
+        <div style="position:relative;height:16px;margin-bottom:2px">
+          ${vMax  ? `<span style="position:absolute;left:0;font-family:'Pretendard',-apple-system,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.02em;color:#378ADD">조회수</span>` : ''}
+          ${lcMax ? `<span style="position:absolute;right:0;font-family:'Pretendard',-apple-system,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.02em;color:#999">좋아요·댓글</span>` : ''}
         </div>
         <div class="cmp-chart-canvas" id="cmpChartCanvas">
           <svg id="cmpChartSvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
