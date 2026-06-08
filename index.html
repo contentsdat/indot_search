@@ -5282,13 +5282,15 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   }).join('');
 
   // 범례 — 지표 그래프와 동일한 선 아이콘 스타일
-  const mkLineSvg = (color, da) =>
-    `<svg width="28" height="12" viewBox="0 0 28 12" style="vertical-align:middle;flex-shrink:0">
-      <line x1="0" y1="6" x2="28" y2="6" stroke="${color}" stroke-width="2.5" stroke-linecap="round" ${da ? `stroke-dasharray="${da}"` : ''}/>
-    </svg>`;
   const legendHtml = [
-    hasA ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_A,'')}<span style="font-size:12px;font-weight:700;color:${COLOR_A}">${esc(orgA)}</span></span>` : '',
-    hasB ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_B_HEX,'5 4')}<span style="font-size:12px;font-weight:700;color:${COLOR_B_HEX}">${esc(orgB)}</span></span>` : '',
+    hasA ? `<span style="display:inline-flex;align-items:center;gap:6px">
+      <span style="display:inline-block;width:20px;height:2.5px;border-radius:2px;background:${COLOR_A}"></span>
+      <span style="font-size:12px;font-weight:700;color:${COLOR_A}">${esc(orgA)}</span>
+    </span>` : '',
+    hasB ? `<span style="display:inline-flex;align-items:center;gap:6px">
+      <span style="display:inline-block;width:20px;height:2.5px;border-radius:2px;background:${COLOR_B_HEX}"></span>
+      <span style="font-size:12px;font-weight:700;color:${COLOR_B_HEX}">${esc(orgB)}</span>
+    </span>` : '',
   ].filter(Boolean).join('');
 
   // 하단 통계
@@ -6235,21 +6237,6 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
   // 전역 저장
   window.__cmpChartStore = { orgA, orgB, byMonA, byMonB, allMonths, metrics };
 
-  // 기관 범례
-  const mkLineSvg = (color, dashed, sw=2) => {
-    const da = dashed ? 'stroke-dasharray="5 4" stroke-linecap="butt"' : 'stroke-linecap="round"';
-    return `<svg width="26" height="12" viewBox="0 0 26 12" style="vertical-align:middle;flex-shrink:0"><line x1="0" y1="6" x2="26" y2="6" stroke="${color}" stroke-width="${sw}" ${da}/></svg>`;
-  };
-  const orgLegend = `
-    <span style="display:inline-flex;align-items:center;gap:5px">
-      ${mkLineSvg('#555', false, 2)}
-      <span style="font-size:12px;font-weight:600;color:var(--ink-2)">${esc(orgA||'A')}</span>
-    </span>
-    ${orgB ? `<span style="display:inline-flex;align-items:center;gap:5px">
-      ${mkLineSvg('#aaa', true, 1.8)}
-      <span style="font-size:12px;font-weight:600;color:var(--ink-3)">${esc(orgB)}</span>
-    </span>` : ''}`;
-
   // 탭 목록 (선택된 지표만)
   const ML = {v:'조회수', l:'좋아요', c:'댓글수'};
   const availTabs = ['v','l','c'].filter(mk => metrics.includes(mk) || !metrics.length);
@@ -6258,6 +6245,17 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
   const tabBtns = availTabs.map(mk => `
     <button class="cmp-chart-tab${mk===firstTab?' on':''}" onclick="cmpChartTab('${mk}')">${ML[mk]}</button>
   `).join('');
+
+  // 범례 — 색상은 cmpChartTab에서 동적으로 업데이트
+  const orgLegend = `
+    <span id="cmpLegendA" style="display:inline-flex;align-items:center;gap:6px">
+      <span style="display:inline-block;width:20px;height:2.5px;border-radius:2px;background:#378ADD"></span>
+      <span style="font-size:12px;font-weight:600;color:var(--ink-2)">${esc(orgA||'A')}</span>
+    </span>
+    ${orgB ? `<span id="cmpLegendB" style="display:inline-flex;align-items:center;gap:6px">
+      <span style="display:inline-block;width:20px;height:2.5px;border-radius:2px;background:#85B7EB"></span>
+      <span style="font-size:12px;font-weight:600;color:var(--ink-3)">${esc(orgB)}</span>
+    </span>` : ''}`;
 
   document.getElementById('cmpChartWrap').innerHTML = `
     <div class="cmp-chart-wrap">
@@ -6294,8 +6292,12 @@ function cmpChartTab(mk) {
   const COLORS_B = { v:'#85B7EB', l:'#5DCAA5', c:'#EF9F27' };
   const colorA = COLORS_A[mk], colorB = COLORS_B[mk];
 
-  // 탭 활성화
+  // 탭 활성화 + 범례 색상 업데이트
   document.querySelectorAll('.cmp-chart-tab').forEach(b => b.classList.toggle('on', b.textContent.trim() === ML[mk]));
+  const legA = document.getElementById('cmpLegendA');
+  const legB = document.getElementById('cmpLegendB');
+  if (legA) legA.querySelector('span').style.background = colorA;
+  if (legB) legB.querySelector('span').style.background = colorB;
 
   // 데이터
   const serA = allMonths.map(m => byMonA[mk][m]||0);
