@@ -5252,10 +5252,22 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const yMin = Math.min(...allVals);
   const ySpan = yMax - yMin || 1;
 
-  const W = 800, H = 180, padX = 8, padY = 12;
+  const W = 800, H = 180, padL = 42, padR = 8, padY = 12;
   const n = allMonths.length;
-  const xOf = i => n > 1 ? (i / (n - 1)) * (W - padX * 2) + padX : W / 2;
+  const xOf = i => n > 1 ? (i / (n - 1)) * (W - padL - padR) + padL : W / 2;
   const yOf = v => v === null ? null : H - padY - ((v - yMin) / ySpan) * (H - padY * 2);
+
+  // Y축 그리드 + 라벨 (4분할, 5개 눈금)
+  const Y_TICKS = 4;
+  let yGridSvg = '';
+  for (let t = 0; t <= Y_TICKS; t++) {
+    const ratio = t / Y_TICKS;
+    const val = yMin + ratio * ySpan;
+    const y = H - padY - ratio * (H - padY * 2);
+    const label = fmtN(Math.round(val));
+    yGridSvg += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.8" opacity="0.7"/>`;
+    yGridSvg += `<text x="${(padL - 5).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="var(--ink-4)">${label}</text>`;
+  }
 
   // 선 + 면적만 (점 없음) — 지표 그래프와 동일한 패턴
   function mkSeriesSvg(vals, color, dash) {
@@ -5363,10 +5375,11 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       <div class="cmp-chart-canvas" id="subChartCanvas">
         <svg id="subChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="xMidYMid meet"
           style="width:100%;display:block"
-          data-w="${W}" data-h="${H}" data-padx="${padX}" data-n="${n}"
+          data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-n="${n}"
           data-months="${allMonths.join(',')}"
           onmousemove="subChartHover(event,this)" onmouseleave="subChartHideTooltip()"
         >
+          ${yGridSvg}
           ${mkSeriesSvg(valsA, COLOR_A, '')}
           ${mkSeriesSvg(valsB, COLOR_B_HEX, '20 10')}
           ${xLabels}
@@ -5391,7 +5404,7 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
 
 // ─── 구독자 그래프 Hover Tooltip ───
 function subChartHover(e, svg) {
-  const W = +svg.dataset.w, H = +svg.dataset.h, padX = +svg.dataset.padx, n = +svg.dataset.n;
+  const W = +svg.dataset.w, H = +svg.dataset.h, padL = +svg.dataset.padl, padR = +(svg.dataset.padr || 8), n = +svg.dataset.n;
   if (n < 2) return;
 
   let svgX;
@@ -5403,8 +5416,8 @@ function subChartHover(e, svg) {
     const r = svg.getBoundingClientRect();
     svgX = (e.clientX - r.left) / r.width * W;
   }
-  const idx = Math.min(n - 1, Math.max(0, Math.round((svgX - padX) / ((W - padX * 2) / (n - 1)))));
-  const xPos = (idx / (n - 1)) * (W - padX * 2) + padX;
+  const idx = Math.min(n - 1, Math.max(0, Math.round((svgX - padL) / ((W - padL - padR) / (n - 1)))));
+  const xPos = (idx / (n - 1)) * (W - padL - padR) + padL;
 
   const line = document.getElementById('subHoverLine');
   if (line) { line.setAttribute('x1', xPos); line.setAttribute('x2', xPos); line.setAttribute('opacity', '0.5'); }
