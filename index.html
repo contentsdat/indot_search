@@ -1638,6 +1638,23 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   height: 1px;
   background: var(--line-2);
 }
+.quick-sep {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 0;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.quick-sep-line {
+  display: inline-block;
+  width: 1px;
+  height: 22px;
+  background: var(--line-2);
+}
 .quick-chip {
   background: transparent;
   border: 1.5px solid var(--ink-1);
@@ -4565,16 +4582,15 @@ function buildPresets() {
   const el = document.getElementById('presetList');
   // 게스트/free: 처음 2개(이번주 인기, 이달 TOP)만 자유, 나머지는 잠금
   const FREE_PRESET_IDS = ['topweek', 'topmonth'];
-  const chips = PRESETS.map(p => {
+  const SEP = `<span class="quick-sep"><span class="quick-sep-line"></span>최근 3개월</span>`;
+  const chipsBefore = PRESETS.filter(p => FREE_PRESET_IDS.includes(p.id));
+  const chipsAfter  = PRESETS.filter(p => !FREE_PRESET_IDS.includes(p.id));
+  const renderChip  = p => {
     const locked = !canDo('allPresets') && !FREE_PRESET_IDS.includes(p.id);
-    if (locked) {
-      return `<button class="quick-chip quick-chip-locked" data-id="${p.id}"
-        onclick="showPlanToast('퀵픽 전체 이용은 Basic 이상 플랜에서 가능합니다.')" title="Basic 이상 플랜 필요 · ${p.title||''}">
-        🔒 ${p.name}</button>`;
-    }
+    if (locked) return `<button class="quick-chip quick-chip-locked" data-id="${p.id}" onclick="showPlanToast('퀵픽 전체 이용은 Basic 이상 플랜에서 가능합니다.')" title="Basic 이상 플랜 필요 · ${p.title||''}">🔒 ${p.name}</button>`;
     return `<button class="quick-chip" data-id="${p.id}" onclick="applyPreset('${p.id}')" title="${p.title||''}">${p.name}</button>`;
-  }).join('');
-  el.innerHTML = `<span class="quick-label">Quick picks</span>` + chips;
+  };
+  el.innerHTML = `<span class="quick-label">Quick picks</span>` + chipsBefore.map(renderChip).join('') + SEP + chipsAfter.map(renderChip).join('');
 }
 
 function applyPreset(id) {
