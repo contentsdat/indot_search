@@ -2179,6 +2179,18 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   margin-bottom: 24px;
   padding: 20px 20px 16px;
 }
+.cmp-chart-tabs {
+  display: flex; gap: 4px;
+}
+.cmp-chart-tab {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+  padding: 4px 10px; border-radius: 3px; cursor: pointer;
+  border: 1px solid var(--line); background: transparent;
+  color: var(--ink-3); transition: all 0.15s;
+}
+.cmp-chart-tab:hover { border-color: var(--ink-3); color: var(--ink-2); }
+.cmp-chart-tab.on { background: var(--ink-1); color: white; border-color: var(--ink-1); }
 .cmp-chart-head {
   display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: 16px;
@@ -6195,19 +6207,19 @@ function renderCmpTypeChart(orgA, orgB, statA, statB) {
 }
 
 function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
-  if (!metrics.length) metrics = ['v'];
-  // aggregate by MONTH (yw format: "2024-03" → slice 0,7)
-  const toMonth = yw => (yw||'').slice(0,7); // "2024-03"
-  const byMonA = {}, byMonB = {};
-  metrics.forEach(mk => { byMonA[mk] = {}; byMonB[mk] = {}; });
+  // 데이터를 전역에 저장해두고, 탭 전환 시 재사용
+  const toMonth = yw => (yw||'').slice(0,7);
+  const byMonA = {v:{}, l:{}, c:{}};
+  const byMonB = {v:{}, l:{}, c:{}};
+  ['v','l','c'].forEach(mk => { byMonA[mk] = {}; byMonB[mk] = {}; });
 
   dataA.forEach(d => {
     const m = toMonth(d.yw); if(!m) return;
-    metrics.forEach(mk => { byMonA[mk][m] = (byMonA[mk][m]||0) + (d[mk]||0); });
+    ['v','l','c'].forEach(mk => { byMonA[mk][m] = (byMonA[mk][m]||0) + (d[mk]||0); });
   });
   dataB.forEach(d => {
     const m = toMonth(d.yw); if(!m) return;
-    metrics.forEach(mk => { byMonB[mk][m] = (byMonB[mk][m]||0) + (d[mk]||0); });
+    ['v','l','c'].forEach(mk => { byMonB[mk][m] = (byMonB[mk][m]||0) + (d[mk]||0); });
   });
 
   const allMonths = [...new Set([
@@ -6220,41 +6232,88 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
     return;
   }
 
-  // ── 이중 Y축 레이아웃 ──
-  // 왼쪽 패딩(Y축 레이블용) / 오른쪽 패딩
+  // 전역 저장
+  window.__cmpChartStore = { orgA, orgB, byMonA, byMonB, allMonths, metrics };
+
+  // 기관 범례
+  const mkLineSvg = (color, dashed, sw=2) => {
+    const da = dashed ? 'stroke-dasharray="5 4" stroke-linecap="butt"' : 'stroke-linecap="round"';
+    return `<svg width="26" height="12" viewBox="0 0 26 12" style="vertical-align:middle;flex-shrink:0"><line x1="0" y1="6" x2="26" y2="6" stroke="${color}" stroke-width="${sw}" ${da}/></svg>`;
+  };
+  const orgLegend = `
+    <span style="display:inline-flex;align-items:center;gap:5px">
+      ${mkLineSvg('#555', false, 2)}
+      <span style="font-size:12px;font-weight:600;color:var(--ink-2)">${esc(orgA||'A')}</span>
+    </span>
+    ${orgB ? `<span style="display:inline-flex;align-items:center;gap:5px">
+      ${mkLineSvg('#aaa', true, 1.8)}
+      <span style="font-size:12px;font-weight:600;color:var(--ink-3)">${esc(orgB)}</span>
+    </span>` : ''}`;
+
+  // 탭 목록 (선택된 지표만)
+  const ML = {v:'조회수', l:'좋아요', c:'댓글수'};
+  const availTabs = ['v','l','c'].filter(mk => metrics.includes(mk) || !metrics.length);
+  const firstTab = availTabs[0] || 'v';
+
+  const tabBtns = availTabs.map(mk => `
+    <button class="cmp-chart-tab${mk===firstTab?' on':''}" onclick="cmpChartTab('${mk}')">${ML[mk]}</button>
+  `).join('');
+
+  document.getElementById('cmpChartWrap').innerHTML = `
+    <div class="cmp-chart-wrap">
+      <div class="cmp-chart-head">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="cmp-chart-title">월별 추이</div>
+          <div class="cmp-chart-tabs">${tabBtns}</div>
+        </div>
+        <div class="cmp-chart-legend" style="gap:12px;flex-wrap:wrap;align-items:center">
+          ${orgLegend}
+        </div>
+      </div>
+      <div style="position:relative">
+        <div id="cmpChartYLabel" style="position:relative;height:16px;margin-bottom:2px"></div>
+        <div class="cmp-chart-canvas" id="cmpChartCanvas">
+          <svg id="cmpChartSvg" viewBox="0 0 800 200" preserveAspectRatio="xMidYMid meet"
+            style="width:100%;display:block" overflow="visible"
+            onmousemove="cmpChartHover(event,this)" onmouseleave="cmpChartHideTooltip()"
+          ></svg>
+        </div>
+      </div>
+    </div>`;
+
+  cmpChartTab(firstTab);
+}
+
+// 탭 전환 — 단일 지표만 렌더
+function cmpChartTab(mk) {
+  const store = window.__cmpChartStore;
+  if (!store) return;
+  const { orgA, orgB, byMonA, byMonB, allMonths } = store;
+  const ML = {v:'조회수', l:'좋아요', c:'댓글수'};
+  const COLORS_A = { v:'#378ADD', l:'#1D9E75', c:'#BA7517' };
+  const COLORS_B = { v:'#85B7EB', l:'#5DCAA5', c:'#EF9F27' };
+  const colorA = COLORS_A[mk], colorB = COLORS_B[mk];
+
+  // 탭 활성화
+  document.querySelectorAll('.cmp-chart-tab').forEach(b => b.classList.toggle('on', b.textContent.trim() === ML[mk]));
+
+  // 데이터
+  const serA = allMonths.map(m => byMonA[mk][m]||0);
+  const serB = allMonths.map(m => byMonB[mk][m]||0);
+  const hasB = orgB && serB.some(v => v > 0);
+  const globalMax = Math.max(...serA, ...(hasB ? serB : [0])) || 1;
+
+  // 레이아웃
   const W = 800, H = 200;
-  const padL = 44, padR = 44, padTop = 14, padBot = 22;
-  const chartW = W - padL - padR;  // 실제 그래프 너비
+  const padL = 44, padR = 12, padTop = 14, padBot = 22;
+  const chartW = W - padL - padR;
   const chartH = H - padTop - padBot;
   const n = allMonths.length;
+  const xOf = i => padL + (n > 1 ? (i / (n-1)) * chartW : chartW/2);
+  const yOf = v => padTop + chartH - (v / globalMax) * chartH;
+  const baseY = padTop + chartH;
 
-  const METRIC_COLORS   = { v: '#378ADD', l: '#1D9E75', c: '#BA7517' }; // A기관 — 진한 색
-  const METRIC_COLORS_B = { v: '#85B7EB', l: '#5DCAA5', c: '#EF9F27' }; // B기관 — 연한 색 (같은 계열)
-  const METRIC_SW       = { v: 1.6, l: 1.4, c: 1.2 };
-
-  // 조회수(v) 축과 좋아요+댓글(l,c) 축 분리
-  const vMetrics  = metrics.filter(m => m === 'v');
-  const lcMetrics = metrics.filter(m => m !== 'v');
-
-  // 각 축의 globalMax 계산
-  const axisMax = (mks) => {
-    let mx = 0;
-    mks.forEach(mk => {
-      allMonths.forEach(m => {
-        mx = Math.max(mx, byMonA[mk][m]||0, byMonB[mk][m]||0);
-      });
-    });
-    return mx || 1;
-  };
-  const vMax  = vMetrics.length  ? axisMax(vMetrics)  : null;
-  const lcMax = lcMetrics.length ? axisMax(lcMetrics) : null;
-
-  // 축별 Y 좌표 변환
-  const yOfV  = v => padTop + chartH - (v / vMax)  * chartH;
-  const yOfLC = v => padTop + chartH - (v / lcMax) * chartH;
-  const xOf   = i => padL + (n > 1 ? (i / (n-1)) * chartW : chartW / 2);
-
-  // ── nice tick 계산 ──
+  // niceTicks
   const niceTicks = (maxVal, count=4) => {
     if (!maxVal) return [];
     const raw = maxVal / count;
@@ -6266,71 +6325,42 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
     for (let t = step; t <= maxVal * 1.05; t += step) ticks.push(t);
     return ticks.slice(0, count+1);
   };
-  const vTicks  = vMax  ? niceTicks(vMax)  : [];
-  const lcTicks = lcMax ? niceTicks(lcMax) : [];
-
-  // ── Y축 눈금선 + 레이블 ──
-  let yAxisSvg = '';
   const fmtTick = t => t >= 100000000 ? Math.round(t/100000000)+'억' : t >= 10000 ? (t/10000)+'만' : t >= 1000 ? Math.round(t/1000)+'k' : t;
-  // 배경 그리드: vTicks 기준 (없으면 lcTicks)
-  const gridTicks = vTicks.length ? vTicks : lcTicks;
-  gridTicks.forEach(t => {
-    const y = vMax ? yOfV(t) : yOfLC(t);
-    yAxisSvg += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="rgba(0,0,0,0.09)" stroke-width="1"/>`;
+  const ticks = niceTicks(globalMax);
+
+  // Y축 그리드 + 레이블 (단일 축 — 왼쪽만)
+  let yAxisSvg = '';
+  let prevLabel = '';
+  ticks.forEach(t => {
+    const y = yOf(t);
+    yAxisSvg += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>`;
+    const label = fmtTick(t);
+    if (label !== prevLabel) {
+      yAxisSvg += `<text x="${padL-5}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#666">${label}</text>`;
+      prevLabel = label;
+    }
   });
-  // 왼쪽 Y축 (조회수)
-  if (vMax) {
-    let prevLabel = '';
-    vTicks.forEach(t => {
-      const label = fmtTick(t);
-      if (label === prevLabel) return;
-      prevLabel = label;
-      const y = yOfV(t);
-      yAxisSvg += `<text x="${padL-5}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#378ADD">${label}</text>`;
-    });
-  }
-  // 오른쪽 Y축 (좋아요+댓글)
-  if (lcMax) {
-    let prevLabel = '';
-    lcTicks.forEach(t => {
-      const label = fmtTick(t);
-      if (label === prevLabel) return;
-      prevLabel = label;
-      const y = yOfLC(t);
-      yAxisSvg += `<text x="${W-padR+5}" y="${(y+3.5).toFixed(1)}" text-anchor="start" font-family="'Pretendard',-apple-system,sans-serif" font-size="8.5" fill="#888">${label}</text>`;
-    });
-  }
 
-  // ── 라인 경로 생성 ──
-  let svgPaths = '';
-  const mkPath = pts => pts.map(([x,y],i)=>(i===0?`M${x.toFixed(1)},${y.toFixed(1)}`:`L${x.toFixed(1)},${y.toFixed(1)}`)).join(' ');
-  const mkArea = (pts, baseY) => {
-    const l = mkPath(pts);
-    return l + ` L${pts[pts.length-1][0].toFixed(1)},${baseY} L${pts[0][0].toFixed(1)},${baseY} Z`;
-  };
-  const baseY = padTop + chartH;
+  // 라인 경로
+  const mkPath = pts => pts.map(([x,y],i) => (i===0?`M${x.toFixed(1)},${y.toFixed(1)}`:`L${x.toFixed(1)},${y.toFixed(1)}`)).join(' ');
+  const mkArea = (pts) => mkPath(pts) + ` L${pts[pts.length-1][0].toFixed(1)},${baseY} L${pts[0][0].toFixed(1)},${baseY} Z`;
 
-  metrics.forEach((mk) => {
-    const serA = allMonths.map(m => byMonA[mk][m]||0);
-    const serB = allMonths.map(m => byMonB[mk][m]||0);
-    const yOf    = mk === 'v' ? yOfV : yOfLC;
-    const colorA = METRIC_COLORS[mk]   || '#378ADD';
-    const colorB = METRIC_COLORS_B[mk] || '#85B7EB';
-    const sw     = METRIC_SW[mk] || 2;
+  const ptA = serA.map((v,i) => [xOf(i), yOf(v)]);
+  const ptB = serB.map((v,i) => [xOf(i), yOf(v)]);
 
-    const ptA = serA.map((v,i) => [xOf(i), yOf(v)]);
-    const ptB = serB.map((v,i) => [xOf(i), yOf(v)]);
+  let svgPaths = `
+    <path d="${mkArea(ptA)}" fill="${colorA}" opacity="0.06"/>
+    <path d="${mkPath(ptA)}" fill="none" stroke="${colorA}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${ptA[ptA.length-1][0].toFixed(1)}" cy="${ptA[ptA.length-1][1].toFixed(1)}" r="3" fill="${colorA}"/>`;
 
+  if (hasB) {
     svgPaths += `
-      <path d="${mkArea(ptA, baseY)}" fill="${colorA}" opacity="0.05"/>
-      <path d="${mkPath(ptA)}" fill="none" stroke="${colorA}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>
-      <path d="${mkArea(ptB, baseY)}" fill="${colorB}" opacity="0.06"/>
-      <path d="${mkPath(ptB)}" fill="none" stroke="${colorB}" stroke-width="1.4" stroke-dasharray="20 10" stroke-linejoin="round" stroke-linecap="butt"/>
-      <circle cx="${ptA[ptA.length-1][0].toFixed(1)}" cy="${ptA[ptA.length-1][1].toFixed(1)}" r="3" fill="${colorA}"/>
-      <circle cx="${ptB[ptB.length-1][0].toFixed(1)}" cy="${ptB[ptB.length-1][1].toFixed(1)}" r="3" fill="${colorB}"/>`;
-  });
+    <path d="${mkArea(ptB)}" fill="${colorB}" opacity="0.06"/>
+    <path d="${mkPath(ptB)}" fill="none" stroke="${colorB}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${ptB[ptB.length-1][0].toFixed(1)}" cy="${ptB[ptB.length-1][1].toFixed(1)}" r="3" fill="${colorB}"/>`;
+  }
 
-  // x-axis month labels
+  // X축 레이블
   const step = Math.max(1, Math.floor(n/8));
   let xLabels = '';
   allMonths.forEach((m,i) => {
@@ -6338,73 +6368,28 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
     xLabels += `<text x="${xOf(i).toFixed(1)}" y="${H-4}" text-anchor="middle" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="var(--ink-4)">${m.slice(2)}</text>`;
   });
 
-  // 범례: 기관(실선/점선) + 지표(색상) — A진한/B연한 쌍
-  const mkLineSvg = (color, dashed, sw=2) => {
-    const da = dashed ? 'stroke-dasharray="5 4" stroke-linecap="butt"' : 'stroke-linecap="round"';
-    return `<svg width="26" height="12" viewBox="0 0 26 12" style="vertical-align:middle;flex-shrink:0"><line x1="0" y1="6" x2="26" y2="6" stroke="${color}" stroke-width="${sw}" ${da}/></svg>`;
-  };
-
-  // 지표가 1개면 A기관/B기관 구분만, 복수면 지표별 색상 쌍으로
-  const orgLegendItems = `
-    <span style="display:inline-flex;align-items:center;gap:5px">
-      ${mkLineSvg('#555', false, 2)}
-      <span style="font-size:12px;font-weight:600;color:var(--ink-2)">${esc(orgA||'A')}</span>
-    </span>
-    <span style="display:inline-flex;align-items:center;gap:5px">
-      ${mkLineSvg('#aaa', true, 1.8)}
-      <span style="font-size:12px;font-weight:600;color:var(--ink-3)">${esc(orgB||'B')}</span>
-    </span>`;
-
-  const metricLegendItems = metrics.map(mk => {
-    const colorA = METRIC_COLORS[mk]   || '#378ADD';
-    const colorB = METRIC_COLORS_B[mk] || '#85B7EB';
-    return `<span style="display:inline-flex;align-items:center;gap:4px">
-      ${mkLineSvg(colorA, false, 2)}${mkLineSvg(colorB, true, 1.8)}
-      <span style="font-size:12px;color:var(--ink-2);font-weight:600">${METRIC_LABEL[mk]}</span>
-    </span>`;
-  }).join('');
-
-  const legendRows = `${orgLegendItems}
-    <span style="width:1px;height:16px;background:var(--line);display:inline-block"></span>
-    ${metricLegendItems}`;
-
-  // 툴팁용 데이터 직렬화
-  // 툴팁 데이터를 전역 변수로 저장 (HTML 속성 이스케이프 문제 완전 우회)
+  // 전역 데이터 저장 (툴팁용)
   window.__cmpTooltipData = {
-    months: allMonths,
-    orgA: orgA||'A', orgB: orgB||'B',
-    seriesA: metrics.map(mk => ({ mk, data: allMonths.map(m => byMonA[mk][m]||0) })),
-    seriesB: metrics.map(mk => ({ mk, data: allMonths.map(m => byMonB[mk][m]||0) })),
-    colorA: COLOR_A, colorB: COLOR_B_HEX,
+    months: allMonths, mk,
+    orgA, orgB: hasB ? orgB : '',
+    serA, serB: hasB ? serB : [],
+    colorA, colorB,
   };
 
-  document.getElementById('cmpChartWrap').innerHTML = `
-    <div class="cmp-chart-wrap">
-      <div class="cmp-chart-head">
-        <div class="cmp-chart-title">월별 추이</div>
-        <div class="cmp-chart-legend" style="gap:12px;flex-wrap:wrap;align-items:center">
-          ${legendRows}
-        </div>
-      </div>
-      <div style="position:relative">
-        <div style="position:relative;height:16px;margin-bottom:2px">
-          ${vMax  ? `<span style="position:absolute;left:0;font-family:'Pretendard',-apple-system,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.02em;color:#378ADD">조회수</span>` : ''}
-          ${lcMax ? `<span style="position:absolute;right:0;font-family:'Pretendard',-apple-system,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.02em;color:#999">좋아요·댓글</span>` : ''}
-        </div>
-        <div class="cmp-chart-canvas" id="cmpChartCanvas">
-          <svg id="cmpChartSvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
-            style="width:100%;display:block"
-            data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-padt="${padTop}" data-padb="${padBot}"
-            data-months="${allMonths.join(',')}"
-            onmousemove="cmpChartHover(event,this)" onmouseleave="cmpChartHideTooltip()"
-          >${yAxisSvg}${svgPaths}${xLabels}
-            <line id="cmpHoverLine" x1="0" y1="${padTop}" x2="0" y2="${padTop+chartH}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
-          </svg>
-        </div>
-      </div>
-    </div>`;
+  // SVG 업데이트
+  const svg = document.getElementById('cmpChartSvg');
+  svg.setAttribute('data-w', W); svg.setAttribute('data-h', H);
+  svg.setAttribute('data-padl', padL); svg.setAttribute('data-padr', padR);
+  svg.setAttribute('data-padt', padTop); svg.setAttribute('data-padb', padBot);
+  svg.setAttribute('data-months', allMonths.join(','));
+  svg.innerHTML = `${yAxisSvg}${svgPaths}${xLabels}
+    <line id="cmpHoverLine" x1="0" y1="${padTop}" x2="0" y2="${padTop+chartH}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>`;
 
-  drawOnWhenVisible('cmpChartSvg', 2200, 100, true);
+  // Y축 레이블 텍스트
+  const yLabel = document.getElementById('cmpChartYLabel');
+  if (yLabel) yLabel.innerHTML = `<span style="position:absolute;left:0;font-family:'Pretendard',-apple-system,sans-serif;font-size:9px;font-weight:700;letter-spacing:0.02em;color:${colorA}">${ML[mk]}</span>`;
+
+  drawOnWhenVisible('cmpChartSvg', 1800, 80, true);
 }
 
 function renderCmpTops(orgA, orgB, dataA, dataB, metrics) {
@@ -6514,39 +6499,36 @@ function cmpChartHover(e, svg) {
   if (!ttData) return;
 
   const ML = {v:'조회수', l:'좋아요', c:'댓글수'};
-  const MC = {v:'#378ADD', l:'#1D9E75', c:'#BA7517'};
   const month = months[idx];
+  const mk = ttData.mk || 'v';
+  const vA = ttData.serA ? ttData.serA[idx] : 0;
+  const vB = ttData.serB ? ttData.serB[idx] : 0;
+  const colorA = ttData.colorA || '#378ADD';
+  const colorB = ttData.colorB || '#85B7EB';
 
-  const mkLineSvgTT = (color, dashed) => {
-    const da = dashed ? 'stroke-dasharray="3 2"' : '';
-    return `<svg width="10" height="6" viewBox="0 0 10 6" style="flex-shrink:0;vertical-align:middle"><line x1="0" y1="3" x2="10" y2="3" stroke="${color}" stroke-width="1.5" stroke-linecap="round" ${da}/></svg>`;
-  };
+  const mkLineSvgTT = (color) =>
+    `<svg width="10" height="6" viewBox="0 0 10 6" style="flex-shrink:0;vertical-align:middle"><line x1="0" y1="3" x2="10" y2="3" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/></svg>`;
 
-  let rows = '';
-  ttData.seriesA.forEach((sA, mi) => {
-    const sB = ttData.seriesB[mi];
-    const vA = sA.data[idx], vB = sB.data[idx];
-    const mk = sA.mk;
-    const color = MC[mk] || '#fff';
+  let rows = `
+    <div style="font-size:9px;color:#888;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px">${ML[mk]}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:5px;min-width:0">
+        ${mkLineSvgTT(colorA)}
+        <span style="color:#bbb;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ttData.orgA)}</span>
+      </div>
+      <span style="color:#fff;font-weight:700;font-size:11px;white-space:nowrap;flex-shrink:0">${fmtN(vA)}</span>
+    </div>`;
+
+  if (ttData.orgB) {
     rows += `
-      <div style="margin-top:${mi>0?'8px':'0'};padding-top:${mi>0?'8px':'0'};border-top:${mi>0?'1px solid rgba(255,255,255,0.12)':'none'}">
-        <div style="font-size:9px;color:#888;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px">${ML[mk]}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:5px">
-          <div style="display:flex;align-items:center;gap:5px;min-width:0">
-            ${mkLineSvgTT(color, false)}
-            <span style="color:#bbb;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ttData.orgA)}</span>
-          </div>
-          <span style="color:#fff;font-weight:700;font-size:11px;white-space:nowrap;flex-shrink:0">${fmtN(vA)}</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <div style="display:flex;align-items:center;gap:5px;min-width:0">
-            ${mkLineSvgTT(color, true)}
-            <span style="color:#bbb;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ttData.orgB)}</span>
-          </div>
-          <span style="color:#fff;font-weight:700;font-size:11px;white-space:nowrap;flex-shrink:0">${fmtN(vB)}</span>
-        </div>
-      </div>`;
-  });
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="display:flex;align-items:center;gap:5px;min-width:0">
+        ${mkLineSvgTT(colorB)}
+        <span style="color:#bbb;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ttData.orgB)}</span>
+      </div>
+      <span style="color:#fff;font-weight:700;font-size:11px;white-space:nowrap;flex-shrink:0">${fmtN(vB)}</span>
+    </div>`;
+  }
 
   // fixed 툴팁
   let tip = document.getElementById('cmpChartTooltipFixed');
