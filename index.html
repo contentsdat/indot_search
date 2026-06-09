@@ -2229,6 +2229,7 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   border: 1.5px solid var(--ink-1);
   margin-bottom: 24px;
   padding: 20px 20px 16px;
+  overflow: hidden;
 }
 .cmp-chart-tabs {
   display: flex; gap: 4px;
@@ -5437,8 +5438,8 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
           <span class="cmp-subscriber-note">월별 구독자 수</span>
         </div>
       </div>
-      <div class="cmp-chart-canvas" style="position:relative" id="subChartCanvas">
-        <svg id="subChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="none"
+      <div class="cmp-chart-canvas" style="position:relative;height:${H+20}px;overflow:hidden" id="subChartCanvas">
+        <svg id="subChartSvg" viewBox="0 0 ${W} ${H+24}" preserveAspectRatio="none"
           style="width:100%;height:${H+20}px;display:block"
           data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-n="${n}"
