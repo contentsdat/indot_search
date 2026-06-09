@@ -474,7 +474,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ──────────────────────────────────────── WEEKLY KEYWORDS */
 .weekly-kw-row {
   max-width: 1320px; margin: 0 auto;
-  padding: 10px 32px 0;
+  padding: 10px 32px 14px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -1690,10 +1690,10 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 .quick-chip.on { background: var(--blue); color: white; border-color: var(--blue); }
 .quick-sep {
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 3px;
-  margin: 0 4px;
+  gap: 6px;
+  margin: 0 6px;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 10px;
   color: var(--ink-4);
@@ -1702,7 +1702,7 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 }
 .quick-sep-line {
   width: 1px;
-  height: 20px;
+  height: 18px;
   background: var(--line-2);
 }
 .quick-note {
@@ -5437,9 +5437,9 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
           <span class="cmp-subscriber-note">월별 구독자 수</span>
         </div>
       </div>
-      <div class="cmp-chart-canvas" style="height:${H+20}px;position:relative" id="subChartCanvas">
-        <svg id="subChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="none"
-          style="width:100%;height:100%;display:block"
+      <div class="cmp-chart-canvas" style="position:relative" id="subChartCanvas">
+        <svg id="subChartSvg" viewBox="0 0 ${W} ${H+18}" preserveAspectRatio="xMidYMid meet"
+          style="width:100%;display:block"
           data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-n="${n}"
           data-months="${allMonths.join(',')}"
@@ -5462,6 +5462,15 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       </div>
       <div class="cmp-subscriber-stat-row">
         ${statItems.join('')}
+        ${!orgB && calcSubRank(orgA) ? (() => {
+          const r = calcSubRank(orgA);
+          const showBadge = r.pct <= 50;
+          return `<div class="cmp-subscriber-stat">
+            <span class="lbl">구독자 순위</span>
+            <span style="font-size:14px;font-weight:600;letter-spacing:-0.02em">${r.rank}위 <span style="font-size:11px;font-weight:400;color:var(--ink-3)">/ ${r.total}개</span></span>
+            ${showBadge ? `<span style="margin-top:3px;display:inline-block;font-size:10px;font-weight:700;color:white;background:var(--blue);padding:2px 7px;border-radius:3px;letter-spacing:0.01em">상위 ${r.pct}%</span>` : ''}
+          </div>`;
+        })() : ''}
         <div class="cmp-subscriber-stat" style="margin-left:auto">
           <span class="lbl">데이터 기간</span>
           <span style="font-size:14px;font-weight:600;letter-spacing:-0.02em">${allMonths[0]} ~ ${allMonths[allMonths.length-1]}</span>
@@ -5795,128 +5804,40 @@ function renderSoloAnalysis(orgName, data, metrics) {
     return list;
   }
 
-  // 선택된 지표 목록 (없으면 조회수 기본)
-  const activeMetricKeys = metrics.length ? metrics : ['v'];
-  const METRIC_COLORS = { v: COLOR_A, l: '#e07b00', c: '#1a9e5f' };
-
-  // 지표별 월별 집계
-  const byMonAll = {};
-  activeMetricKeys.forEach(mk => { byMonAll[mk] = {}; });
+  // 단일 분석 차트 전역 데이터 저장
+  const SOLO_METRIC_COLORS = { v: COLOR_A, l: '#e07b00', c: '#1a9e5f' };
+  const allMks = ['v','l','c'];
+  const byMonAllFull = { v:{}, l:{}, c:{} };
   data.forEach(d => {
     const m = toMonth(d.yw); if(!m) return;
-    activeMetricKeys.forEach(mk => {
-      byMonAll[mk][m] = (byMonAll[mk][m]||0) + (d[mk]||0);
-    });
+    allMks.forEach(mk => { byMonAllFull[mk][m] = (byMonAllFull[mk][m]||0) + (d[mk]||0); });
   });
+  window.__soloChartData = { months, byMonAll: byMonAllFull, colors: SOLO_METRIC_COLORS };
+  window.__soloActiveMk = 'v';
 
-  // 데이터가 있는 달 기준으로 실제 범위 결정
-  const dataMonths = [...new Set(activeMetricKeys.flatMap(mk => Object.keys(byMonAll[mk])))].sort();
-  const rangeStart = xStart || dataMonths[0] || '';
-  const rangeEnd   = xEnd   || dataMonths[dataMonths.length-1] || '';
-  const months = genMonthRange(rangeStart, rangeEnd);
+  // 탭 버튼 HTML
+  const soloTabs = allMks.map(mk =>
+    `<button class="cmp-chart-tab${mk==='v'?' on':''}" onclick="soloChartTab('${mk}')">${METRIC_LABEL[mk]}</button>`
+  ).join('');
 
-  // 지표별 값 배열 (지표마다 독립 Y스케일)
-  const metricSeries = activeMetricKeys.map(mk => {
-    const vals = months.map(m => byMonAll[mk][m] || 0);
-    const maxVal = Math.max(...vals) || 1;
-    return { mk, vals, maxVal };
-  });
-
-  // 첫 번째 지표 (툴팁용 기준)
-  const mk0 = activeMetricKeys[0];
-
-  let trendSvg = '';
-  if (months.length >= 2) {
-    const W=600, H=90, padX=6, padY=10;
-    const labelH = 22; // X축 라벨 영역 — font-size 11 기준 여유
-    const n = months.length;
-
-    // X좌표 계산 (padX 최소, 라벨은 text-anchor로 처리)
-    const xOf = i => n>1 ? (i/(n-1))*(W-padX*2)+padX : W/2;
-
-    // 지표별 SVG 경로 생성
-    const seriesSvg = metricSeries.map(({mk, vals, maxVal}) => {
-      const color = METRIC_COLORS[mk] || COLOR_A;
-      const pts = vals.map((v,i) => ({
-        x: xOf(i),
-        y: H - padY - (v/maxVal)*(H-padY*2)
-      }));
-      const linePath = pts.map((p,i) => i===0?`M${p.x.toFixed(1)},${p.y.toFixed(1)}`:`L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-      const areaPath = linePath + ` L${pts[pts.length-1].x.toFixed(1)},${H} L${pts[0].x.toFixed(1)},${H} Z`;
-      // 호버 닷
-      const dots = pts.map((p,i) =>
-        `<circle class="solo-trend-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${color}" opacity="0" data-idx="${i}" data-mk="${mk}"/>`
-      ).join('');
-      return `
-        <path d="${areaPath}" fill="${color}" opacity="0.07"/>
-        <path d="${linePath}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        ${dots}`;
-    }).join('');
-
-    // X축 라벨 — 겹침 방지 포함
-    const step = Math.max(1, Math.floor(n / 8));
-    // step 간격으로 표시할 인덱스 목록 먼저 결정
-    const labelIdxSet = new Set();
-    for (let i = 0; i < n; i += step) labelIdxSet.add(i);
-    // 마지막 인덱스 추가 — 단 바로 앞 라벨과 너무 가까우면(step/2 미만 간격) 앞 라벨 제거
-    const lastI = n - 1;
-    if (!labelIdxSet.has(lastI)) {
-      const prevLabelI = [...labelIdxSet].filter(i => i < lastI).pop();
-      if (prevLabelI !== undefined && lastI - prevLabelI < Math.max(1, Math.ceil(step / 2))) {
-        labelIdxSet.delete(prevLabelI);
-      }
-      labelIdxSet.add(lastI);
-    }
-    // SVG 좌표계(W=600) 기준 font-size: 실제 컨테이너가 좁으므로 비율 보정
-    // viewBox W=600 기준으로 11px → 스케일 무관하게 적절한 크기
-    const xlabels = months.map((m, i) => {
-      if (!labelIdxSet.has(i)) return '';
-      const x = xOf(i);
-      const anchor = i === 0 ? 'start' : (i === lastI ? 'end' : 'middle');
-      // 첫/마지막은 경계에서 살짝 안으로
-      const xAdj = i === 0 ? Math.max(x, 2) : (i === lastI ? Math.min(x, W - 2) : x);
-      return `<text x="${xAdj.toFixed(1)}" y="${H + labelH - 2}" text-anchor="${anchor}" font-family="'Pretendard',-apple-system,sans-serif" font-size="9" fill="var(--ink-4)">${m.slice(2)}</text>`;
-    }).join('');
-
-    // 범례 (지표 2개 이상일 때만) — solo-type-label 스타일과 통일
-    const legendHtml = activeMetricKeys.length > 1
-      ? `<div style="display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
-          ${activeMetricKeys.map(mk => `
-            <div style="display:flex;align-items:center;gap:6px;font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-3);letter-spacing:0.02em;text-transform:uppercase">
-              <div style="width:18px;height:2px;background:${METRIC_COLORS[mk]||COLOR_A};border-radius:1px;flex-shrink:0"></div>
-              ${METRIC_LABEL[mk]||mk}
-            </div>`).join('')}
-        </div>`
-      : '';
-
-    // 툴팁용 데이터 (전체 지표)
-    const tooltipDataStr = JSON.stringify({
-      months,
-      series: metricSeries.map(({mk, vals}) => ({ mk, vals, label: METRIC_LABEL[mk]||mk, color: METRIC_COLORS[mk]||COLOR_A }))
-    }).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-
-    trendSvg = `
-    <div style="position:relative">
-      ${legendHtml}
-      <svg id="soloTrendSvg" viewBox="0 0 ${W} ${H+labelH}" preserveAspectRatio="none"
-        style="width:100%;height:${H+labelH}px;display:block;cursor:crosshair"
-        data-tooltip="${tooltipDataStr}"
-        data-w="${W}" data-h="${H}" data-padx="${padX}" data-pady="${padY}" data-n="${n}"
-        onmousemove="soloTrendHover(event,this)" onmouseleave="soloTrendHide()">
-        ${seriesSvg}
-        <line id="soloHoverLine" x1="0" y1="0" x2="0" y2="${H}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
-        ${activeMetricKeys.map(mk => `<circle id="soloHoverDot_${mk}" cx="0" cy="0" r="4" fill="${METRIC_COLORS[mk]||COLOR_A}" opacity="0" pointer-events="none"/>`).join('')}
-        ${xlabels}
-      </svg>
-      <div id="soloTrendTooltip" style="
-        display:none;position:absolute;pointer-events:none;z-index:10;
-        background:rgba(230,235,255,0.92);color:var(--blue-2);
-        border:1.5px solid var(--blue);
-        border-radius:2px;padding:8px 14px;min-width:140px;
-        font-size:13px;line-height:1.6;
-      "></div>
-    </div>`;
-  }
+  const soloChartHtml = months.length >= 2 ? `
+    <div class="cmp-chart-wrap" style="margin-bottom:0">
+      <div class="cmp-chart-head" style="margin-bottom:12px">
+        <div class="solo-type-label" style="margin:0">월별 추이</div>
+        <div class="cmp-chart-tabs">${soloTabs}</div>
+      </div>
+      <div style="position:relative">
+        <svg id="soloTrendSvg" style="width:100%;display:block"
+          onmousemove="soloTrendHover(event,this)" onmouseleave="soloTrendHide()">
+        </svg>
+        <div id="soloTrendTooltip" style="
+          display:none;position:fixed;pointer-events:none;z-index:9999;
+          background:rgba(24,24,24,0.93);color:#fff;border-radius:8px;
+          padding:10px 13px;font-family:'Pretendard',-apple-system,sans-serif;
+          font-size:11px;line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,0.22);white-space:nowrap;">
+        </div>
+      </div>
+    </div>` : '';
 
   document.getElementById('cmpDiffBar').innerHTML = '';
 
@@ -5945,14 +5866,14 @@ function renderSoloAnalysis(orgName, data, metrics) {
       </div>
       ${months.length >= 2 ? `
       <div style="flex:1;min-width:0;border-left:1px solid var(--line);padding-left:24px">
-        <div class="solo-type-label" style="margin-bottom:${activeMetricKeys.length > 1 ? 2 : 10}px">월별 ${activeMetricKeys.map(mk => METRIC_LABEL[mk]).join(' · ')} 추이</div>
-        ${trendSvg}
+        ${soloChartHtml}
       </div>` : ''}
     </div>`;
 
-  drawOnWhenVisible('soloTrendSvg', 2200, 100);
+  if (months.length >= 2) {
+    _renderSoloChartSvg('v');
+  }
 
-  // 도넛 애니메이션 (innerHTML 주입 후 DOM 페인트 대기)
   setTimeout(() => {
     document.querySelectorAll('#cmpTypeChart svg[data-donut-id]').forEach(svg => animateDonut(svg));
   }, 120);
@@ -6368,7 +6289,7 @@ function _renderCmpChartSvg(mk) {
   const serB = allMonths.map(m => byMonB[mk][m]||0);
   const globalMax = Math.max(...serA, ...serB) || 1;
 
-  const W = 800, H = 180, padL = 42, padR = 8, padY = 12;
+  const W = 800, H = 280, padL = 42, padR = 8, padY = 12;
   const n = allMonths.length;
   const xOf = i => n > 1 ? (i/(n-1))*(W-padL-padR)+padL : W/2;
   const yOf = v => H - padY - (v/globalMax)*(H-padY*2);
@@ -6539,66 +6460,106 @@ function cmpChartHideTooltip() {
 }
 
 // ─── Solo Trend Tooltip ───
-function soloTrendHover(e, svg) {
-  const W = +svg.dataset.w, H = +svg.dataset.h, padX = +svg.dataset.padx, n = +svg.dataset.n;
-  if (n < 2) return;
+function soloChartTab(mk) {
+  if (!window.__soloChartData) return;
+  window.__soloActiveMk = mk;
+  document.querySelectorAll('#cmpTypeChart .cmp-chart-tab').forEach(b => b.classList.toggle('on', b.textContent === METRIC_LABEL[mk]));
+  _renderSoloChartSvg(mk);
+}
 
-  let ttData;
-  try { ttData = JSON.parse(svg.dataset.tooltip.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')); }
-  catch { return; }
+function _renderSoloChartSvg(mk) {
+  const sd = window.__soloChartData;
+  if (!sd) return;
+  const { months, byMonAll, colors } = sd;
+  const color = colors[mk] || COLOR_A;
+  const vals = months.map(m => byMonAll[mk][m] || 0);
+  const maxVal = Math.max(...vals) || 1;
+
+  const W = 800, H = 200, padL = 42, padR = 8, padY = 12;
+  const labelH = 18;
+  const n = months.length;
+  const xOf = i => n > 1 ? (i/(n-1))*(W-padL-padR)+padL : W/2;
+  const yOf = v => H - padY - (v/maxVal)*(H-padY*2);
+
+  // Y축 그리드 + 라벨
+  let yGrid = '';
+  for (let t = 0; t <= 4; t++) {
+    const ratio = t / 4;
+    const val = ratio * maxVal;
+    const y = H - padY - ratio * (H - padY * 2);
+    yGrid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.8" opacity="0.6"/>`;
+    yGrid += `<text x="${(padL-5).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="var(--ink-4)">${fmtN(Math.round(val))}</text>`;
+  }
+
+  // 라인 + 면적
+  const linePath = vals.map((v,i) => (i===0?`M${xOf(i).toFixed(1)},${yOf(v).toFixed(1)}`:`L${xOf(i).toFixed(1)},${yOf(v).toFixed(1)}`)).join(' ');
+  const areaPath = linePath + ` L${xOf(n-1).toFixed(1)},${H} L${xOf(0).toFixed(1)},${H} Z`;
+
+  // X축 라벨
+  const step = Math.max(1, Math.floor(n/8));
+  const lastI = n - 1;
+  const labelIdxSet = new Set();
+  for (let i = 0; i < n; i += step) labelIdxSet.add(i);
+  if (!labelIdxSet.has(lastI)) {
+    const prev = [...labelIdxSet].filter(i => i < lastI).pop();
+    if (prev !== undefined && lastI - prev < Math.max(1, Math.ceil(step/2))) labelIdxSet.delete(prev);
+    labelIdxSet.add(lastI);
+  }
+  const xLabels = months.map((m, i) => {
+    if (!labelIdxSet.has(i)) return '';
+    const x = xOf(i);
+    const anchor = i===0?'start':(i===lastI?'end':'middle');
+    const xAdj = i===0?Math.max(x,padL+2):(i===lastI?Math.min(x,W-padR-2):x);
+    return `<text x="${xAdj.toFixed(1)}" y="${H+labelH-2}" text-anchor="${anchor}" font-family="'Pretendard',-apple-system,sans-serif" font-size="9" fill="var(--ink-4)">${m.slice(2)}</text>`;
+  }).join('');
+
+  const svgContent = `
+    ${yGrid}
+    <path d="${areaPath}" fill="${color}" opacity="0.07"/>
+    <path d="${linePath}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${xLabels}
+    <line id="soloHoverLine" x1="0" y1="0" x2="0" y2="${H}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 2" opacity="0" pointer-events="none"/>
+    <circle id="soloHoverDot" cx="0" cy="0" r="4" fill="${color}" opacity="0" pointer-events="none"/>`;
+
+  const svg = document.getElementById('soloTrendSvg');
+  if (!svg) return;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H+labelH}`);
+  svg.style.height = (H+labelH+4) + 'px';
+  svg.innerHTML = svgContent;
+
+  window.__soloTooltipData = { months, vals, color, mk, W, H, padL, padR, padY };
+  drawOnWhenVisible('soloTrendSvg', 1200, 60, true);
+}
+
+function soloTrendHover(e, svg) {
+  const td = window.__soloTooltipData;
+  if (!td) return;
+  const { months, vals, color, mk, W, H, padL, padR } = td;
+  const n = months.length; if (n < 2) return;
 
   const rect = svg.getBoundingClientRect();
   const svgX = (e.clientX - rect.left) / rect.width * W;
-  const idx = Math.min(n-1, Math.max(0, Math.round((svgX - padX) / ((W - padX*2) / (n-1)))));
+  const idx = Math.min(n-1, Math.max(0, Math.round((svgX - padL) / ((W - padL - padR) / (n-1)))));
+  const xPos = (idx/(n-1))*(W-padL-padR)+padL;
 
-  const padY = +svg.dataset.pady;
-  const xPos = (idx/(n-1))*(W-padX*2)+padX;
-
-  // 수직선
   const line = document.getElementById('soloHoverLine');
   if (line) { line.setAttribute('x1', xPos); line.setAttribute('x2', xPos); line.setAttribute('opacity','0.5'); }
 
-  // 지표별 닷 위치 업데이트
-  (ttData.series || []).forEach(({mk, vals}) => {
-    const maxVal = Math.max(...vals) || 1;
-    const yPos = H - padY - (vals[idx]/maxVal)*(H-padY*2);
-    const dot = document.getElementById(`soloHoverDot_${mk}`);
-    if (dot) { dot.setAttribute('cx', xPos); dot.setAttribute('cy', yPos); dot.setAttribute('opacity','1'); }
-  });
+  const dotY = H - 12 - (vals[idx] / (Math.max(...vals)||1)) * (H - 12*2);
+  const dot = document.getElementById('soloHoverDot');
+  if (dot) { dot.setAttribute('cx', xPos); dot.setAttribute('cy', dotY.toFixed(1)); dot.setAttribute('opacity','1'); }
 
-  // 툴팁
   const tip = document.getElementById('soloTrendTooltip');
   if (!tip) return;
-  tip.style.display = 'block';
-
-  const month = ttData.months[idx];
-  const rows = (ttData.series || []).map(({label, vals, color}) =>
-    `<div style="display:flex;align-items:center;gap:7px;margin-top:3px">
-      <div style="width:10px;height:2px;background:${color};border-radius:1px;flex-shrink:0"></div>
-      <span style="font-size:10px;color:var(--ink-3);min-width:36px">${label}</span>
-      <span style="font-size:13px;font-weight:700;letter-spacing:-0.02em;color:var(--ink-1)">${fmtN(vals[idx])}</span>
-    </div>`
-  ).join('');
-
   tip.innerHTML = `
-    <div style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-3);letter-spacing:0.01em;margin-bottom:2px;font-weight:600">${month}</div>
-    ${rows}`;
-
-  // 위치: 오른쪽 절반이면 왼쪽에 표시
-  const canvasRect = tip.parentElement.getBoundingClientRect();
-  const relX = e.clientX - canvasRect.left;
-  const tipW = 180;
-  tip.style.left = relX > canvasRect.width / 2
-    ? Math.max(0, relX - tipW - 12) + 'px'
-    : (relX + 12) + 'px';
-
-  // top 위치: 툴팁 높이를 측정해 컨테이너 밖으로 넘치지 않도록 조정
-  const tipH = tip.offsetHeight;
-  const containerH = canvasRect.height;
-  const relY = e.clientY - canvasRect.top;
-  let topPos = Math.max(4, relY - tipH / 2);
-  if (topPos + tipH > containerH - 4) topPos = Math.max(4, containerH - tipH - 4);
-  tip.style.top = topPos + 'px';
+    <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:4px">${months[idx]}</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="display:inline-block;width:10px;height:3px;background:${color};border-radius:2px"></span>
+      <span style="font-weight:700;font-size:13px">${fmtN(vals[idx])}</span>
+    </div>`;
+  tip.style.display = 'block';
+  tip.style.left = (e.clientX + 16) + 'px';
+  tip.style.top  = (e.clientY - 20) + 'px';
 }
 
 function soloTrendHide() {
@@ -6606,8 +6567,8 @@ function soloTrendHide() {
   if (tip) tip.style.display = 'none';
   const line = document.getElementById('soloHoverLine');
   if (line) line.setAttribute('opacity','0');
-  // 모든 지표 닷 숨기기
-  document.querySelectorAll('[id^="soloHoverDot_"]').forEach(dot => dot.setAttribute('opacity','0'));
+  const dot = document.getElementById('soloHoverDot');
+  if (dot) dot.setAttribute('opacity','0');
 }
 
 // export
