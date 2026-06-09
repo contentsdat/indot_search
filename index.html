@@ -471,6 +471,40 @@ button { font-family: inherit; cursor: pointer; }
 }
 .kw-chip.tier-2 { font-size: 13px; font-weight: 600; padding: 5px 13px; }
 
+/* ──────────────────────────────────────── WEEKLY KEYWORDS */
+.weekly-kw-row {
+  max-width: 1320px; margin: 0 auto;
+  padding: 10px 32px 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+}
+.weekly-kw-label {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.weekly-kw-chips {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+.weekly-kw-chips .kw-chip {
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 3px 11px;
+}
+.weekly-kw-chips .kw-chip.tier-1 { font-size: 13px; padding: 4px 13px; }
+.weekly-kw-chips .kw-chip.tier-2 { font-size: 12.5px; padding: 3px 12px; }
+@media (max-width: 720px) { .weekly-kw-row { padding: 10px 16px 0; } }
+
 /* ──────────────────────────────────────── PRESET BAND */
 .preset-band {
   max-width: 1320px; margin: 0 auto;
@@ -3380,8 +3414,14 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   </div>
   </div><!-- /searchGateWrap -->
 
+  <!-- 이번 주 주요 키워드 -->
+  <div class="weekly-kw-row" id="weeklyKwRow">
+    <span class="weekly-kw-label">이번 주 키워드</span>
+    <div class="weekly-kw-chips" id="weeklyKwChips"></div>
+  </div>
+
   <!-- 필터 게이트 래퍼 -->
-  <div id="filterGateWrap" style="position:relative">
+  <div id="filterGateWrap" style="position:relative;margin-top:18px">
   <!-- INLINE FILTERS -->
   <div class="inline-filters">
     <div class="inline-filter">
@@ -4479,6 +4519,7 @@ function initApp(json) {
 
   setView('list');
   buildPresets();
+  buildWeeklyKeywords();
   applyFilters();
   applyPlanGates(); // 앱 초기화 후 게이트 재적용
 }
@@ -4515,6 +4556,43 @@ function buildKeywordChips() {
       const esW = esc(w);
       return `<button class="kw-chip ${tier}" data-kw="${esW}" onclick="setKeyword('${esW.replace(/'/g,"\\'")}')">${esW}<span class="kw-cnt">${n}</span></button>`;
     }).join('');
+}
+
+function buildWeeklyKeywords() {
+  const el = document.getElementById('weeklyKwChips');
+  if (!el || !DB) return;
+
+  // 최근 2주차 데이터만 추출
+  const allPairs = [...new Map(
+    DB.data.filter(d => d.yw).map(d => [`${d.yw}-${d.wk||0}`, { yw: d.yw, wk: d.wk||0 }])
+  ).values()].sort((a,b) => a.yw.localeCompare(b.yw) || (a.wk||0)-(b.wk||0));
+  const recent2 = new Set(allPairs.slice(-2).map(p => `${p.yw}-${p.wk}`));
+  const recentData = DB.data.filter(d => recent2.has(`${d.yw}-${d.wk||0}`));
+
+  const stopwords = new Set(['수','및','을','를','이','가','은','는','의','에','서','로','과','와','한','하는','있는','위한','대한','관한','통한','그','더','이번','올해','우리','우리나라','공식','영상','동영상','소개','안내','채널','하여','되는','되어','하고','합니다','있습니다','입니다','했습니다','하겠습니다','드립니다','말씀','행사','관련','진행','실시','개최','운영','지원','시행','추진','발표','현장','참여','함께','위해','통해','대해','관해']);
+  const freq = {};
+  recentData.forEach(d => {
+    if (!d.ti) return;
+    const words = d.ti.replace(/[()[\]「」『』【】《》〈〉\-_|#@!?.,·…~]/g,' ').split(/\s+/).filter(w => w.length >= 2 && !stopwords.has(w) && !/^\d+$/.test(w));
+    words.forEach(w => { freq[w] = (freq[w]||0) + 1; });
+  });
+  const top = Object.entries(freq).sort((a,b) => b[1]-a[1]).slice(0,15);
+
+  el.innerHTML = top.map(([w, n], i) => {
+    const tier = i < 3 ? 'tier-1' : i < 7 ? 'tier-2' : '';
+    const esW = esc(w);
+    return `<button class="kw-chip ${tier}" data-kw="${esW}" onclick="setKeyword('${esW.replace(/'/g,"\\'")}')">${esW}<span class="kw-cnt">${n}</span></button>`;
+  }).join('');
+
+  // 컨테이너 너비 초과 칩 숨기기 (한 줄 유지)
+  requestAnimationFrame(() => {
+    const chips = Array.from(el.children);
+    const maxRight = el.getBoundingClientRect().right;
+    chips.forEach(chip => {
+      chip.style.display = '';
+      if (chip.getBoundingClientRect().right > maxRight) chip.style.display = 'none';
+    });
+  });
 }
 
 // presets
