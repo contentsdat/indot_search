@@ -5335,7 +5335,7 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const yMin = Math.min(...allVals);
   const ySpan = yMax - yMin || 1;
 
-  const W = 800, H = 180, padL = 42, padR = 8, padY = 12;
+  const W = 800, H = 300, padL = 42, padR = 8, padY = 12;
   const n = allMonths.length;
   const xOf = i => n > 1 ? (i / (n - 1)) * (W - padL - padR) + padL : W / 2;
   const yOf = v => v === null ? null : H - padY - ((v - yMin) / ySpan) * (H - padY * 2);
@@ -5828,7 +5828,7 @@ function renderSoloAnalysis(orgName, data, metrics) {
   ).join('');
 
   const soloChartHtml = months.length >= 2 ? `
-    <div class="cmp-chart-wrap" style="margin-bottom:0">
+    <div class="cmp-chart-wrap" style="margin-bottom:0;border:none;padding-left:0;padding-right:0">
       <div class="cmp-chart-head" style="margin-bottom:12px">
         <div class="solo-type-label" style="margin:0">월별 추이</div>
         <div class="cmp-chart-tabs">${soloTabs}</div>
@@ -6296,7 +6296,7 @@ function _renderCmpChartSvg(mk) {
   const serB = allMonths.map(m => byMonB[mk][m]||0);
   const globalMax = Math.max(...serA, ...serB) || 1;
 
-  const W = 800, H = 280, padL = 42, padR = 8, padY = 12;
+  const W = 800, H = 360, padL = 42, padR = 8, padY = 12;
   const n = allMonths.length;
   const xOf = i => n > 1 ? (i/(n-1))*(W-padL-padR)+padL : W/2;
   const yOf = v => H - padY - (v/globalMax)*(H-padY*2);
