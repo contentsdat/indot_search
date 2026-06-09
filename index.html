@@ -5812,6 +5812,13 @@ function renderSoloAnalysis(orgName, data, metrics) {
     const m = toMonth(d.yw); if(!m) return;
     allMks.forEach(mk => { byMonAllFull[mk][m] = (byMonAllFull[mk][m]||0) + (d[mk]||0); });
   });
+
+  // months: xStart~xEnd 범위의 전체 월 목록
+  const dataMonthsFull = [...new Set(allMks.flatMap(mk => Object.keys(byMonAllFull[mk])))].sort();
+  const rangeStart = xStart || dataMonthsFull[0] || '';
+  const rangeEnd   = xEnd   || dataMonthsFull[dataMonthsFull.length-1] || '';
+  const months = genMonthRange(rangeStart, rangeEnd);
+
   window.__soloChartData = { months, byMonAll: byMonAllFull, colors: SOLO_METRIC_COLORS };
   window.__soloActiveMk = 'v';
 
@@ -6328,7 +6335,7 @@ function _renderCmpChartSvg(mk) {
 
   const svg = document.getElementById('cmpChartSvg');
   if (!svg) return;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H+18}`);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H+20}`);
   svg.style.height = (H+20) + 'px';
   svg.innerHTML = svgContent;
 
