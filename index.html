@@ -5438,9 +5438,9 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
           <span class="cmp-subscriber-note">월별 구독자 수</span>
         </div>
       </div>
-      <div class="cmp-chart-canvas" style="position:relative;height:${H+20}px;overflow:hidden" id="subChartCanvas">
-        <svg id="subChartSvg" viewBox="0 0 ${W} ${H+24}" preserveAspectRatio="none"
-          style="width:100%;height:${H+20}px;display:block"
+      <div class="cmp-chart-canvas" style="position:relative;overflow:hidden" id="subChartCanvas">
+        <svg id="subChartSvg" viewBox="0 0 ${W} ${H+24}" preserveAspectRatio="xMidYMid meet"
+          style="width:100%;height:auto;display:block;min-height:${H}px"
           data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-n="${n}"
           data-months="${allMonths.join(',')}"
@@ -6456,7 +6456,9 @@ function cmpChartHover(e, svg) {
       <span style="margin-left:auto;padding-left:16px;font-weight:700;color:#fff">${fmtN(vB)}</span>
     </div>`;
   tip.style.display = 'block';
-  tip.style.left = (e.clientX + 16) + 'px';
+  const tipW = tip.offsetWidth || 200;
+  const overRight = e.clientX + 16 + tipW > window.innerWidth;
+  tip.style.left = overRight ? (e.clientX - tipW - 12) + 'px' : (e.clientX + 16) + 'px';
   tip.style.top  = (e.clientY - 20) + 'px';
 }
 
