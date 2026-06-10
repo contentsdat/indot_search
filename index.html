@@ -5336,7 +5336,7 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const yMin = Math.min(...allVals);
   const ySpan = yMax - yMin || 1;
 
-  const W = 480, H = 180, padL = 42, padR = 8, padY = 12;
+  const W = 420, H = 158, padL = 42, padR = 8, padY = 12;
   const n = allMonths.length;
   const xOf = i => n > 1 ? (i / (n - 1)) * (W - padL - padR) + padL : W / 2;
   const yOf = v => v === null ? null : H - padY - ((v - yMin) / ySpan) * (H - padY * 2);
@@ -5440,7 +5440,7 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       </div>
       <div class="cmp-chart-canvas" style="position:relative;overflow:visible;height:auto" id="subChartCanvas">
         <svg id="subChartSvg" viewBox="0 0 ${W} ${H+24}" preserveAspectRatio="xMidYMid meet"
-          style="width:100%;height:auto;display:block;min-height:${H+24}px"
+          style="width:100%;max-width:${W}px;height:auto;display:block;min-height:${H+24}px"
           data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-n="${n}"
           data-months="${allMonths.join(',')}"
