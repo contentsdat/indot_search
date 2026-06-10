@@ -5336,7 +5336,7 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const yMin = Math.min(...allVals);
   const ySpan = yMax - yMin || 1;
 
-  const W = 800, H = 300, padL = 42, padR = 8, padY = 12;
+  const W = 720, H = 270, padL = 42, padR = 8, padY = 12;
   const n = allMonths.length;
   const xOf = i => n > 1 ? (i / (n - 1)) * (W - padL - padR) + padL : W / 2;
   const yOf = v => v === null ? null : H - padY - ((v - yMin) / ySpan) * (H - padY * 2);
