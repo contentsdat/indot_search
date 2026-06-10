@@ -5409,13 +5409,13 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const growthB  = hasB ? growthOf(valsB) : null;
   const statItems = [
     hasA && latestA !== null ? `<div class="cmp-subscriber-stat">
-      <span class="lbl" style="color:${initCA}">${esc(orgA)}</span>
-      <span class="val" style="color:${initCA}">${fmtN(latestA)}</span>
+      <span class="lbl" style="color:${COLOR_A}">${esc(orgA)}</span>
+      <span class="val" style="color:${COLOR_A}">${fmtN(latestA)}</span>
       ${growthA !== null ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">${growthA>=0?'+':''}${fmtN(growthA)} (기간 중)</span>` : ''}
     </div>` : '',
     hasB && latestB !== null ? `<div class="cmp-subscriber-stat">
-      <span class="lbl" style="color:${initCB}">${esc(orgB)}</span>
-      <span class="val" style="color:${initCB}">${fmtN(latestB)}</span>
+      <span class="lbl" style="color:${COLOR_B_HEX}">${esc(orgB)}</span>
+      <span class="val" style="color:${COLOR_B_HEX}">${fmtN(latestB)}</span>
       ${growthB !== null ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">${growthB>=0?'+':''}${fmtN(growthB)} (기간 중)</span>` : ''}
     </div>` : '',
   ].filter(Boolean);
@@ -6093,8 +6093,8 @@ function renderCmpDiff(orgA, orgB, statA, statB, metrics) {
             <div class="cmp-diff-fill-b" style="width:${ratioB}%;background:${COLOR_B_HEX};opacity:0.8"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-family:'Pretendard',-apple-system,sans-serif;font-size:11px;color:var(--ink-4);margin-top:4px">
-            <span style="color:${initCA}">${ratioA}%</span>
-            <span style="color:${initCB}">${ratioB}%</span>
+            <span style="color:${COLOR_A}">${ratioA}%</span>
+            <span style="color:${COLOR_B_HEX}">${ratioB}%</span>
           </div>
         </div>
         <div>
@@ -6107,8 +6107,8 @@ function renderCmpDiff(orgA, orgB, statA, statB, metrics) {
     <div class="cmp-diff-bar">
       <div class="cmp-diff-title">지표 비교</div>
       <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-bottom:16px">
-        <span style="color:${initCA}">${esc(orgA||'A')}</span>
-        <span style="color:${initCB}">${esc(orgB||'B')}</span>
+        <span style="color:${COLOR_A}">${esc(orgA||'A')}</span>
+        <span style="color:${COLOR_B_HEX}">${esc(orgB||'B')}</span>
       </div>
       ${rows}
     </div>`;
