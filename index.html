@@ -5438,9 +5438,9 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
           <span class="cmp-subscriber-note">월별 구독자 수</span>
         </div>
       </div>
-      <div class="cmp-chart-canvas" style="position:relative;overflow:hidden" id="subChartCanvas">
+      <div class="cmp-chart-canvas" style="position:relative;overflow:visible;height:auto" id="subChartCanvas">
         <svg id="subChartSvg" viewBox="0 0 ${W} ${H+24}" preserveAspectRatio="xMidYMid meet"
-          style="width:100%;height:auto;display:block;min-height:${H}px"
+          style="width:100%;height:auto;display:block;min-height:${H+24}px"
           data-tooltip="${tooltipData}"
           data-w="${W}" data-h="${H}" data-padl="${padL}" data-padr="${padR}" data-n="${n}"
           data-months="${allMonths.join(',')}"
