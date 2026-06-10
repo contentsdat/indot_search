@@ -5397,8 +5397,8 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       <line x1="0" y1="6" x2="28" y2="6" stroke="${color}" stroke-width="2.5" stroke-linecap="round" ${da ? `stroke-dasharray="${da}"` : ''}/>
     </svg>`;
   const legendHtml = [
-    hasA ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_A,'')}<span style="font-size:12px;font-weight:700;color:${COLOR_A}">${esc(orgA)}</span></span>` : '',
-    hasB ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_B_HEX,'6 3')}<span style="font-size:12px;font-weight:700;color:${COLOR_B_HEX}">${esc(orgB)}</span></span>` : '',
+    hasA ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_A,'')}<span style="font-size:12px;font-weight:700;color:${initCA}">${esc(orgA)}</span></span>` : '',
+    hasB ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_B_HEX,'6 3')}<span style="font-size:12px;font-weight:700;color:${initCB}">${esc(orgB)}</span></span>` : '',
   ].filter(Boolean).join('');
 
   // 하단 통계
@@ -5409,13 +5409,13 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
   const growthB  = hasB ? growthOf(valsB) : null;
   const statItems = [
     hasA && latestA !== null ? `<div class="cmp-subscriber-stat">
-      <span class="lbl" style="color:${COLOR_A}">${esc(orgA)}</span>
-      <span class="val" style="color:${COLOR_A}">${fmtN(latestA)}</span>
+      <span class="lbl" style="color:${initCA}">${esc(orgA)}</span>
+      <span class="val" style="color:${initCA}">${fmtN(latestA)}</span>
       ${growthA !== null ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">${growthA>=0?'+':''}${fmtN(growthA)} (기간 중)</span>` : ''}
     </div>` : '',
     hasB && latestB !== null ? `<div class="cmp-subscriber-stat">
-      <span class="lbl" style="color:${COLOR_B_HEX}">${esc(orgB)}</span>
-      <span class="val" style="color:${COLOR_B_HEX}">${fmtN(latestB)}</span>
+      <span class="lbl" style="color:${initCB}">${esc(orgB)}</span>
+      <span class="val" style="color:${initCB}">${fmtN(latestB)}</span>
       ${growthB !== null ? `<span style="font-family:'Pretendard',-apple-system,sans-serif;font-size:10px;color:var(--ink-4)">${growthB>=0?'+':''}${fmtN(growthB)} (기간 중)</span>` : ''}
     </div>` : '',
   ].filter(Boolean);
@@ -6093,8 +6093,8 @@ function renderCmpDiff(orgA, orgB, statA, statB, metrics) {
             <div class="cmp-diff-fill-b" style="width:${ratioB}%;background:${COLOR_B_HEX};opacity:0.8"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-family:'Pretendard',-apple-system,sans-serif;font-size:11px;color:var(--ink-4);margin-top:4px">
-            <span style="color:${COLOR_A}">${ratioA}%</span>
-            <span style="color:${COLOR_B_HEX}">${ratioB}%</span>
+            <span style="color:${initCA}">${ratioA}%</span>
+            <span style="color:${initCB}">${ratioB}%</span>
           </div>
         </div>
         <div>
@@ -6107,8 +6107,8 @@ function renderCmpDiff(orgA, orgB, statA, statB, metrics) {
     <div class="cmp-diff-bar">
       <div class="cmp-diff-title">지표 비교</div>
       <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-bottom:16px">
-        <span style="color:${COLOR_A}">${esc(orgA||'A')}</span>
-        <span style="color:${COLOR_B_HEX}">${esc(orgB||'B')}</span>
+        <span style="color:${initCA}">${esc(orgA||'A')}</span>
+        <span style="color:${initCB}">${esc(orgB||'B')}</span>
       </div>
       ${rows}
     </div>`;
@@ -6251,10 +6251,10 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
 
   // 범례 (기관명)
   const COLOR_PAIRS = { v: ['#378ADD','#85B7EB'], l: ['#1D9E75','#5DCAA5'], c: ['#BA7517','#EF9F27'] };
-  const [cA] = COLOR_PAIRS[__cmpActiveMk];
+  const [initCA, initCB] = COLOR_PAIRS[__cmpActiveMk] || COLOR_PAIRS.v;
   const legend = [
-    orgA ? `<span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:3px;background:${COLOR_A};border-radius:2px"></span><span style="font-size:12px;font-weight:700;color:${COLOR_A}">${esc(orgA)}</span></span>` : '',
-    orgB ? `<span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:3px;background:${COLOR_B_HEX};border-radius:2px;opacity:0.7"></span><span style="font-size:12px;font-weight:700;color:${COLOR_B_HEX}">${esc(orgB)}</span></span>` : '',
+    orgA ? `<span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:3px;background:${initCA};border-radius:2px"></span><span style="font-size:12px;font-weight:700;color:${initCA}">${esc(orgA)}</span></span>` : '',
+    orgB ? `<span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:3px;background:${initCB};border-radius:2px;"></span><span style="font-size:12px;font-weight:700;color:${initCB}">${esc(orgB)}</span></span>` : '',
   ].filter(Boolean).join('');
 
   document.getElementById('cmpChartWrap').innerHTML = `
@@ -6284,9 +6284,23 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
 function cmpChartTab(mk) {
   if (!__cmpChartData) return;
   __cmpActiveMk = mk;
-  document.querySelectorAll('.cmp-chart-tab').forEach(b => b.classList.toggle('on', b.textContent === METRIC_LABEL[mk]));
+  document.querySelectorAll(".cmp-chart-tab").forEach(b => b.classList.toggle("on", b.textContent === METRIC_LABEL[mk]));
   _renderCmpChartSvg(mk);
+  const COLOR_PAIRS = { v: ["#378ADD","#85B7EB"], l: ["#1D9E75","#5DCAA5"], c: ["#BA7517","#EF9F27"] };
+  const [cA, cB] = COLOR_PAIRS[mk] || COLOR_PAIRS.v;
+  const legend = document.querySelector(".cmp-chart-legend");
+  if (legend) {
+    const spans = legend.querySelectorAll("span[style*=inline-flex]");
+    if (spans[0]) { spans[0].querySelector("span:first-child").style.background = cA; spans[0].querySelector("span:last-child").style.color = cA; }
+    if (spans[1]) { spans[1].querySelector("span:first-child").style.background = cB; spans[1].querySelector("span:last-child").style.color = cB; }
+  }
 }
+
+
+
+
+
+
 
 function _renderCmpChartSvg(mk) {
   const { orgA, orgB, allMonths, byMonA, byMonB } = __cmpChartData;
@@ -6456,9 +6470,11 @@ function cmpChartHover(e, svg) {
       <span style="margin-left:auto;padding-left:16px;font-weight:700;color:#fff">${fmtN(vB)}</span>
     </div>`;
   tip.style.display = 'block';
+  // xPos는 SVG viewBox 좌표 → 실제 화면 좌표로 변환해서 점선과 툴팁 위치 일치
+  const svgScreenX = rect.left + (xPos / W) * rect.width;
   const tipW = tip.offsetWidth || 200;
-  const overRight = e.clientX + 16 + tipW > window.innerWidth;
-  tip.style.left = overRight ? (e.clientX - tipW - 12) + 'px' : (e.clientX + 16) + 'px';
+  const overRight = svgScreenX + 16 + tipW > window.innerWidth;
+  tip.style.left = overRight ? (svgScreenX - tipW - 12) + 'px' : (svgScreenX + 16) + 'px';
   tip.style.top  = (e.clientY - 20) + 'px';
 }
 
