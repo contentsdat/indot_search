@@ -6305,7 +6305,7 @@ function _renderCmpChartSvg(mk) {
   const serB = allMonths.map(m => byMonB[mk][m]||0);
   const globalMax = Math.max(...serA, ...serB) || 1;
 
-  const W = 800, H = 360, padL = 42, padR = 8, padY = 12;
+  const W = 800, H = 300, padL = 42, padR = 8, padY = 12;
   const n = allMonths.length;
   const xOf = i => n > 1 ? (i/(n-1))*(W-padL-padR)+padL : W/2;
   const yOf = v => H - padY - (v/globalMax)*(H-padY*2);
@@ -6317,7 +6317,7 @@ function _renderCmpChartSvg(mk) {
     const val = ratio * globalMax;
     const y = H - padY - ratio * (H - padY * 2);
     yGrid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.8" opacity="0.6"/>`;
-    yGrid += `<text x="${(padL-5).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="11" fill="var(--ink-4)">${fmtN(Math.round(val))}</text>`;
+    yGrid += `<text x="${(padL-5).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="9" fill="var(--ink-4)">${fmtN(Math.round(val))}</text>`;
   }
 
   // 라인 + 면적
@@ -6330,7 +6330,7 @@ function _renderCmpChartSvg(mk) {
   let xLabels = '';
   allMonths.forEach((m,i) => {
     if (i % step !== 0 && i !== n-1) return;
-    xLabels += `<text x="${xOf(i).toFixed(1)}" y="${H+14}" text-anchor="middle" font-family="'Pretendard',-apple-system,sans-serif" font-size="11" fill="var(--ink-4)">${m.slice(2)}</text>`;
+    xLabels += `<text x="${xOf(i).toFixed(1)}" y="${H+14}" text-anchor="middle" font-family="'Pretendard',-apple-system,sans-serif" font-size="9" fill="var(--ink-4)">${m.slice(2)}</text>`;
   });
 
   const svgContent = `
