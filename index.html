@@ -5397,8 +5397,8 @@ function renderSubscriberChart(orgA, orgB, yearFrom = '', yearTo = '') {
       <line x1="0" y1="6" x2="28" y2="6" stroke="${color}" stroke-width="2.5" stroke-linecap="round" ${da ? `stroke-dasharray="${da}"` : ''}/>
     </svg>`;
   const legendHtml = [
-    hasA ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_A,'')}<span style="font-size:12px;font-weight:700;color:${initCA}">${esc(orgA)}</span></span>` : '',
-    hasB ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_B_HEX,'6 3')}<span style="font-size:12px;font-weight:700;color:${initCB}">${esc(orgB)}</span></span>` : '',
+    hasA ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_A,'')}<span style="font-size:12px;font-weight:700;color:${COLOR_A}">${esc(orgA)}</span></span>` : '',
+    hasB ? `<span style="display:inline-flex;align-items:center;gap:5px">${mkLineSvg(COLOR_B_HEX,'6 3')}<span style="font-size:12px;font-weight:700;color:${COLOR_B_HEX}">${esc(orgB)}</span></span>` : '',
   ].filter(Boolean).join('');
 
   // 하단 통계
@@ -6295,12 +6295,6 @@ function cmpChartTab(mk) {
     if (spans[1]) { spans[1].querySelector("span:first-child").style.background = cB; spans[1].querySelector("span:last-child").style.color = cB; }
   }
 }
-
-
-
-
-
-
 
 function _renderCmpChartSvg(mk) {
   const { orgA, orgB, allMonths, byMonA, byMonB } = __cmpChartData;
