@@ -6317,7 +6317,7 @@ function _renderCmpChartSvg(mk) {
     const val = ratio * globalMax;
     const y = H - padY - ratio * (H - padY * 2);
     yGrid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.8" opacity="0.6"/>`;
-    yGrid += `<text x="${(padL-5).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="var(--ink-4)">${fmtN(Math.round(val))}</text>`;
+    yGrid += `<text x="${(padL-5).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="11" fill="var(--ink-4)">${fmtN(Math.round(val))}</text>`;
   }
 
   // 라인 + 면적
@@ -6330,7 +6330,7 @@ function _renderCmpChartSvg(mk) {
   let xLabels = '';
   allMonths.forEach((m,i) => {
     if (i % step !== 0 && i !== n-1) return;
-    xLabels += `<text x="${xOf(i).toFixed(1)}" y="${H+14}" text-anchor="middle" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="var(--ink-4)">${m.slice(2)}</text>`;
+    xLabels += `<text x="${xOf(i).toFixed(1)}" y="${H+14}" text-anchor="middle" font-family="'Pretendard',-apple-system,sans-serif" font-size="11" fill="var(--ink-4)">${m.slice(2)}</text>`;
   });
 
   const svgContent = `
@@ -6345,7 +6345,7 @@ function _renderCmpChartSvg(mk) {
   const svg = document.getElementById('cmpChartSvg');
   if (!svg) return;
   svg.setAttribute('viewBox', `0 0 ${W} ${H+20}`);
-  svg.style.height = (H+20) + 'px';
+  svg.style.height = "auto";
   svg.innerHTML = svgContent;
 
   // 툴팁용 데이터 전역 저장
