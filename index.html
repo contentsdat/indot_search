@@ -6305,7 +6305,7 @@ function _renderCmpChartSvg(mk) {
   const serB = allMonths.map(m => byMonB[mk][m]||0);
   const globalMax = Math.max(...serA, ...serB) || 1;
 
-  const W = 800, H = 300, padL = 42, padR = 8, padY = 12;
+  const W = 800, H = 300, padL = 42, padR = 24, padY = 12;
   const n = allMonths.length;
   const xOf = i => n > 1 ? (i/(n-1))*(W-padL-padR)+padL : W/2;
   const yOf = v => H - padY - (v/globalMax)*(H-padY*2);
