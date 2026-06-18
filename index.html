@@ -2788,6 +2788,10 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 }
 
 .auth-modal-bg {
+  display: none; position: fixed; inset: 0; z-index: 9000;
+  background: rgba(14,14,16,.55); backdrop-filter: blur(6px);
+  align-items: center; justify-content: center;
+}
 .auth-modal-bg.open { display: flex; }
 .auth-box {
   background: var(--paper);
