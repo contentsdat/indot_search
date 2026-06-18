@@ -2709,6 +2709,22 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 .btn-auth.outline:hover { background: var(--ink-1); color: white; border-color: var(--ink-1); }
 
 /* ── 인증 모달 ── */
+.site-footer {
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 7px;
+  padding: 28px 20px 36px;
+  border-top: 1px solid var(--line);
+  margin-top: 40px;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 12px; color: var(--ink-4);
+  letter-spacing: 0.01em;
+}
+.site-footer .footer-brand { font-weight: 600; color: var(--ink-3); }
+.site-footer .footer-sep { color: var(--ink-5); }
+.site-footer .footer-contact { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-5); }
+.site-footer .footer-mail { color: var(--ink-3); text-decoration: none; transition: var(--t); }
+.site-footer .footer-mail:hover { color: var(--blue); }
+
 .intro-modal-bg {
   display: none; position: fixed; inset: 0; z-index: 9500;
   background: transparent; pointer-events: none;
@@ -3740,6 +3756,14 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
     </div><!-- /searchResultArea -->
   </main>
 </div>
+
+<!-- ══ FOOTER ══ -->
+<footer class="site-footer">
+  <span class="footer-brand">잉크닷서치</span>
+  <span class="footer-sep">·</span>
+  <span class="footer-contact">CONTACT</span>
+  <a href="mailto:oksuby@gmail.com" class="footer-mail">oksuby@gmail.com</a>
+</footer>
 
 <!-- VIDEO MODAL -->
 <div class="modal-bg" id="videoModal" onclick="closeModal(event)">
