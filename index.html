@@ -3,16 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Google Analytics 4 (잉크닷서치 전용) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-L9HSRNFSZC"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-L9HSRNFSZC');
-</script>
-
 <title>잉크닷 — 공공기관 유튜브 아카이브 [프리텐다드 시안]</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2719,11 +2709,85 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 .btn-auth.outline:hover { background: var(--ink-1); color: white; border-color: var(--ink-1); }
 
 /* ── 인증 모달 ── */
-.auth-modal-bg {
-  display: none; position: fixed; inset: 0; z-index: 9000;
-  background: rgba(14,14,16,.55); backdrop-filter: blur(6px);
-  align-items: center; justify-content: center;
+.intro-modal-bg {
+  display: none; position: fixed; inset: 0; z-index: 9500;
+  background: transparent; pointer-events: none;
+  align-items: center; justify-content: center; padding: 20px;
 }
+.intro-modal-bg.open { display: flex; }
+.intro-box {
+  background: var(--paper);
+  border: 1.5px solid var(--ink-1);
+  box-shadow: 8px 8px 0 var(--ink-1);
+  width: min(440px, 96vw);
+  padding: 34px 34px 26px;
+  position: relative;
+  pointer-events: auto;
+  animation: modal-in .25s cubic-bezier(.34,1.4,.64,1);
+}
+.intro-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 30px; height: 30px; border: 1.5px solid var(--line-2);
+  background: var(--paper); color: var(--ink-3);
+  font-size: 14px; line-height: 1; border-radius: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--t);
+}
+.intro-close:hover { background: var(--ink-1); color: white; border-color: var(--ink-1); }
+.intro-tag {
+  display: inline-block;
+  background: var(--blue); color: white;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  padding: 3px 9px; margin-bottom: 14px;
+}
+.intro-title {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 26px; letter-spacing: -0.02em; line-height: 1.2;
+  color: var(--ink-1); margin-bottom: 18px;
+}
+.intro-body p {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 14px; line-height: 1.65; color: var(--ink-2);
+  margin: 0 0 12px;
+}
+.intro-body p b { color: var(--ink-1); font-weight: 700; }
+.intro-body .intro-note {
+  font-size: 12.5px; color: var(--ink-3);
+  background: var(--paper-2); border-left: 3px solid var(--blue);
+  padding: 9px 12px; margin-top: 4px;
+}
+.intro-foot {
+  display: flex; gap: 8px; align-items: center;
+  margin-top: 24px;
+}
+.intro-skip {
+  flex: 0 0 auto;
+  background: var(--paper); border: 1.5px solid var(--line-2);
+  color: var(--ink-3);
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 12px; font-weight: 500;
+  padding: 11px 14px; transition: var(--t);
+}
+.intro-skip:hover { border-color: var(--ink-3); color: var(--ink-1); }
+.intro-confirm {
+  flex: 1 1 auto;
+  background: var(--ink-1); border: 1.5px solid var(--ink-1);
+  color: white;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 11px 14px; transition: var(--t);
+}
+.intro-confirm:hover { background: var(--blue); border-color: var(--blue); }
+@media (max-width: 600px) {
+  .intro-box { padding: 28px 22px 22px; }
+  .intro-title { font-size: 22px; }
+  .intro-foot { flex-direction: column-reverse; align-items: stretch; }
+  .intro-skip { width: 100%; }
+}
+
+.auth-modal-bg {
 .auth-modal-bg.open { display: flex; }
 .auth-box {
   background: var(--paper);
@@ -3170,6 +3234,24 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
     <div class="drag-overlay-icon">📂</div>
     <div class="drag-overlay-text">data.json 놓기</div>
     <div class="drag-overlay-sub">DROP TO LOAD</div>
+  </div>
+</div>
+
+<!-- ══ INTRO POPUP ══ -->
+<div class="intro-modal-bg" id="introModal" onclick="introModalBgClick(event)">
+  <div class="intro-box">
+    <button class="intro-close" onclick="closeIntroModal(false)" aria-label="닫기">✕</button>
+    <div class="intro-tag">BETA</div>
+    <div class="intro-title">잉크닷서치에 오신 것을 환영합니다</div>
+    <div class="intro-body">
+      <p>잉크닷서치는 4년 동안 잉크닷이 모아온 <b>중앙행정기관과 광역자치단체</b> 유튜브에 게재된 영상의 성과 데이터를 분석해보는 플랫폼입니다.</p>
+      <p>현재는 <b>베타 운영 중</b>으로 베이직(무료) 등급의 가입만 가능합니다.</p>
+      <p class="intro-note">※ 가입 후 관리자가 등급을 변경해 드립니다.</p>
+    </div>
+    <div class="intro-foot">
+      <button class="intro-skip" onclick="closeIntroModal(true)">오늘 하루 보지 않기</button>
+      <button class="intro-confirm" onclick="closeIntroModal(false)">확인</button>
+    </div>
   </div>
 </div>
 
@@ -6261,10 +6343,10 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
 
   // 범례 (기관명)
   const COLOR_PAIRS = { v: ['#378ADD','#85B7EB'], l: ['#1D9E75','#5DCAA5'], c: ['#BA7517','#EF9F27'] };
-  const [initCA, initCB] = COLOR_PAIRS[__cmpActiveMk] || COLOR_PAIRS.v;
+  const [cA] = COLOR_PAIRS[__cmpActiveMk];
   const legend = [
-    orgA ? `<span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:3px;background:${initCA};border-radius:2px"></span><span style="font-size:12px;font-weight:700;color:${initCA}">${esc(orgA)}</span></span>` : '',
-    orgB ? `<span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:3px;background:${initCB};border-radius:2px;"></span><span style="font-size:12px;font-weight:700;color:${initCB}">${esc(orgB)}</span></span>` : '',
+    orgA ? `<span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:3px;background:${COLOR_A};border-radius:2px"></span><span style="font-size:12px;font-weight:700;color:${COLOR_A}">${esc(orgA)}</span></span>` : '',
+    orgB ? `<span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:3px;background:${COLOR_B_HEX};border-radius:2px;opacity:0.7"></span><span style="font-size:12px;font-weight:700;color:${COLOR_B_HEX}">${esc(orgB)}</span></span>` : '',
   ].filter(Boolean).join('');
 
   document.getElementById('cmpChartWrap').innerHTML = `
@@ -6294,16 +6376,8 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
 function cmpChartTab(mk) {
   if (!__cmpChartData) return;
   __cmpActiveMk = mk;
-  document.querySelectorAll(".cmp-chart-tab").forEach(b => b.classList.toggle("on", b.textContent === METRIC_LABEL[mk]));
+  document.querySelectorAll('.cmp-chart-tab').forEach(b => b.classList.toggle('on', b.textContent === METRIC_LABEL[mk]));
   _renderCmpChartSvg(mk);
-  const COLOR_PAIRS = { v: ["#378ADD","#85B7EB"], l: ["#1D9E75","#5DCAA5"], c: ["#BA7517","#EF9F27"] };
-  const [cA, cB] = COLOR_PAIRS[mk] || COLOR_PAIRS.v;
-  const legend = document.querySelector(".cmp-chart-legend");
-  if (legend) {
-    const spans = legend.querySelectorAll("span[style*=inline-flex]");
-    if (spans[0]) { spans[0].querySelector("span:first-child").style.background = cA; spans[0].querySelector("span:last-child").style.color = cA; }
-    if (spans[1]) { spans[1].querySelector("span:first-child").style.background = cB; spans[1].querySelector("span:last-child").style.color = cB; }
-  }
 }
 
 function _renderCmpChartSvg(mk) {
@@ -6315,7 +6389,7 @@ function _renderCmpChartSvg(mk) {
   const serB = allMonths.map(m => byMonB[mk][m]||0);
   const globalMax = Math.max(...serA, ...serB) || 1;
 
-  const W = 800, H = 300, padL = 42, padR = 24, padY = 12;
+  const W = 800, H = 360, padL = 42, padR = 8, padY = 12;
   const n = allMonths.length;
   const xOf = i => n > 1 ? (i/(n-1))*(W-padL-padR)+padL : W/2;
   const yOf = v => H - padY - (v/globalMax)*(H-padY*2);
@@ -6327,7 +6401,7 @@ function _renderCmpChartSvg(mk) {
     const val = ratio * globalMax;
     const y = H - padY - ratio * (H - padY * 2);
     yGrid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.8" opacity="0.6"/>`;
-    yGrid += `<text x="${(padL-5).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="9" fill="var(--ink-4)">${fmtN(Math.round(val))}</text>`;
+    yGrid += `<text x="${(padL-5).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="var(--ink-4)">${fmtN(Math.round(val))}</text>`;
   }
 
   // 라인 + 면적
@@ -6340,7 +6414,7 @@ function _renderCmpChartSvg(mk) {
   let xLabels = '';
   allMonths.forEach((m,i) => {
     if (i % step !== 0 && i !== n-1) return;
-    xLabels += `<text x="${xOf(i).toFixed(1)}" y="${H+14}" text-anchor="middle" font-family="'Pretendard',-apple-system,sans-serif" font-size="9" fill="var(--ink-4)">${m.slice(2)}</text>`;
+    xLabels += `<text x="${xOf(i).toFixed(1)}" y="${H+14}" text-anchor="middle" font-family="'Pretendard',-apple-system,sans-serif" font-size="8" fill="var(--ink-4)">${m.slice(2)}</text>`;
   });
 
   const svgContent = `
@@ -6355,7 +6429,7 @@ function _renderCmpChartSvg(mk) {
   const svg = document.getElementById('cmpChartSvg');
   if (!svg) return;
   svg.setAttribute('viewBox', `0 0 ${W} ${H+20}`);
-  svg.style.height = "auto";
+  svg.style.height = (H+20) + 'px';
   svg.innerHTML = svgContent;
 
   // 툴팁용 데이터 전역 저장
@@ -6474,11 +6548,9 @@ function cmpChartHover(e, svg) {
       <span style="margin-left:auto;padding-left:16px;font-weight:700;color:#fff">${fmtN(vB)}</span>
     </div>`;
   tip.style.display = 'block';
-  // xPos는 SVG viewBox 좌표 → 실제 화면 좌표로 변환해서 점선과 툴팁 위치 일치
-  const svgScreenX = rect.left + (xPos / W) * rect.width;
   const tipW = tip.offsetWidth || 200;
-  const overRight = svgScreenX + 16 + tipW > window.innerWidth;
-  tip.style.left = overRight ? (svgScreenX - tipW - 12) + 'px' : (svgScreenX + 16) + 'px';
+  const overRight = e.clientX + 16 + tipW > window.innerWidth;
+  tip.style.left = overRight ? (e.clientX - tipW - 12) + 'px' : (e.clientX + 16) + 'px';
   tip.style.top  = (e.clientY - 20) + 'px';
 }
 
@@ -6885,6 +6957,30 @@ function esc(s) {
 
 // ── Auth 초기화 (DOM 준비 후 즉시 실행) ──
 initAuth();
+
+// ── 오픈 전 안내 팝업 ──
+(function(){
+  try {
+    var KEY = 'inkdot_intro_dismiss_v1';
+    var until = localStorage.getItem(KEY);
+    if (until && Date.now() < parseInt(until, 10)) return;
+  } catch(e) {}
+  var bg = document.getElementById('introModal');
+  if (bg) requestAnimationFrame(function(){ bg.classList.add('open'); });
+})();
+function closeIntroModal(skipToday){
+  if (skipToday) {
+    try {
+      var end = new Date(); end.setHours(23,59,59,999);
+      localStorage.setItem('inkdot_intro_dismiss_v1', String(end.getTime()));
+    } catch(e) {}
+  }
+  var bg = document.getElementById('introModal');
+  if (bg) bg.classList.remove('open');
+}
+function introModalBgClick(e){
+  if (e.target && e.target.id === 'introModal') closeIntroModal(false);
+}
 </script>
 </body>
 </html>
