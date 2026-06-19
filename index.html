@@ -4213,7 +4213,26 @@ function saveFeatureSettings() {
   setTimeout(() => { msg.textContent = ''; }, 4000);
 }
 
-// ── 전체 회원 목록 불러오기 (RPC: get_all_users)
+// ── 관리자 Edge Function 공통 호출 헬퍼 ──
+async function callAdmin(action, payload = {}) {
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session?.access_token) throw new Error('로그인이 필요합니다.');
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/inkdot-admin`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': SUPABASE_ANON
+    },
+    body: JSON.stringify({ action, ...payload })
+  });
+  let out = {};
+  try { out = await res.json(); } catch (_) {}
+  if (!res.ok || out?.error) throw new Error(out?.error || `HTTP ${res.status}`);
+  return out;
+}
+
+// ── 전체 회원 목록 불러오기 (Edge Function: get_all_users)
 async function loadAllMembers() {
   const wrap = document.getElementById('adminMemberTableWrap');
   const countEl = document.getElementById('adminMemberCount');
@@ -4229,8 +4248,7 @@ async function loadAllMembers() {
   }
 
   try {
-    const { data, error } = await _supabase.rpc('get_all_users');
-    if (error) throw error;
+    const { data } = await callAdmin('get_all_users');
 
     if (!data || data.length === 0) {
       wrap.innerHTML = `<div class="admin-no-result">등록된 회원이 없습니다.</div>`;
@@ -4284,7 +4302,7 @@ async function loadAllMembers() {
 
   } catch (e) {
     wrap.innerHTML = `<div class="admin-no-result">오류: ${esc(e.message)}</div>`;
-    if (msgEl) { msgEl.textContent = 'RPC 함수가 설치되지 않았습니다. 아래 SQL을 Supabase에서 실행해주세요.'; msgEl.className = 'admin-msg err'; }
+    if (msgEl) { msgEl.textContent = 'inkdot-admin Edge Function 호출에 실패했습니다.'; msgEl.className = 'admin-msg err'; }
   }
 }
 
@@ -4298,14 +4316,11 @@ async function saveMemberPlan(userId, email) {
   if (stsEl) { stsEl.textContent = '저장 중…'; stsEl.style.color = 'var(--ink-4)'; }
 
   try {
-    const { error } = await _supabase
-      .from('user_plans')
-      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
-    if (error) throw error;
+    await callAdmin('save_plan', { userId, plan, email });
     if (stsEl) { stsEl.textContent = '✓'; stsEl.style.color = '#059669'; }
     setTimeout(() => { if (stsEl) stsEl.textContent = ''; }, 2500);
   } catch (e) {
-    if (stsEl) { stsEl.textContent = '✗'; stsEl.style.color = '#dc2626'; }
+    if (stsEl) { stsEl.textContent = '✗ ' + e.message; stsEl.style.color = '#dc2626'; }
   }
   btn.disabled = false;
 }
@@ -4324,17 +4339,10 @@ async function adminSearchUser() {
   }
 
   try {
-    // user_plans 테이블에서 이메일로 검색 (join)
-    // 실제 구현: admin API 또는 RPC 필요 (anon key는 제한됨)
-    // 여기서는 user_plans 테이블에 email 컬럼이 있다고 가정
-    const { data, error } = await _supabase
-      .from('user_plans')
-      .select('user_id, plan, email, full_name')
-      .eq('email', email)
-      .limit(5);
+    const { data } = await callAdmin('search_user', { email });
 
-    if (error || !data?.length) {
-      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.<br><small style="color:var(--ink-5)">user_plans 테이블에 email 컬럼이 있어야 합니다.</small></div>`;
+    if (!data?.length) {
+      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.</div>`;
       return;
     }
 
@@ -4363,12 +4371,10 @@ async function saveUserPlan(userId, email) {
   if (msgEl) msgEl.textContent = '저장 중...';
 
   try {
-    const { error } = await _supabase
-      .from('user_plans')
-      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
-
-    if (error) throw error;
+    await callAdmin('save_plan', { userId, plan, email });
     if (msgEl) { msgEl.textContent = '✓ 저장됨'; msgEl.style.color = '#059669'; }
+    const curEl = document.querySelector(`#urow_${userId} .admin-user-current`);
+    if (curEl) curEl.textContent = `현재: ${plan}`;
     setTimeout(() => { if (msgEl) msgEl.textContent = ''; }, 3000);
   } catch (e) {
     if (msgEl) { msgEl.textContent = '오류: ' + e.message; msgEl.style.color = '#dc2626'; }
