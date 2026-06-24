@@ -2709,100 +2709,6 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 .btn-auth.outline:hover { background: var(--ink-1); color: white; border-color: var(--ink-1); }
 
 /* ── 인증 모달 ── */
-.site-footer {
-  display: flex; align-items: center; justify-content: center;
-  flex-wrap: wrap; gap: 7px;
-  padding: 28px 20px 36px;
-  border-top: 1px solid var(--line);
-  margin-top: 40px;
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 12px; color: var(--ink-4);
-  letter-spacing: 0.01em;
-}
-.site-footer .footer-brand { font-weight: 600; color: var(--ink-3); }
-.site-footer .footer-sep { color: var(--ink-5); }
-.site-footer .footer-contact { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-5); }
-.site-footer .footer-mail { color: var(--ink-3); text-decoration: none; transition: var(--t); }
-.site-footer .footer-mail:hover { color: var(--blue); }
-
-.intro-modal-bg {
-  display: none; position: fixed; inset: 0; z-index: 9500;
-  background: transparent; pointer-events: none;
-  align-items: center; justify-content: center; padding: 20px;
-}
-.intro-modal-bg.open { display: flex; }
-.intro-box {
-  background: var(--paper);
-  border: 1.5px solid var(--ink-1);
-  box-shadow: 8px 8px 0 var(--ink-1);
-  width: min(440px, 96vw);
-  padding: 34px 34px 26px;
-  position: relative;
-  pointer-events: auto;
-  animation: modal-in .25s cubic-bezier(.34,1.4,.64,1);
-}
-.intro-close {
-  position: absolute; top: 14px; right: 14px;
-  width: 30px; height: 30px; border: 1.5px solid var(--line-2);
-  background: var(--paper); color: var(--ink-3);
-  font-size: 14px; line-height: 1; border-radius: 0;
-  display: flex; align-items: center; justify-content: center;
-  transition: var(--t);
-}
-.intro-close:hover { background: var(--ink-1); color: white; border-color: var(--ink-1); }
-.intro-tag {
-  display: inline-block;
-  background: var(--blue); color: white;
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
-  padding: 3px 9px; margin-bottom: 14px;
-}
-.intro-title {
-  font-family: 'Instrument Serif', serif;
-  font-style: italic;
-  font-size: 26px; letter-spacing: -0.02em; line-height: 1.2;
-  color: var(--ink-1); margin-bottom: 18px;
-}
-.intro-body p {
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 14px; line-height: 1.65; color: var(--ink-2);
-  margin: 0 0 12px;
-}
-.intro-body p b { color: var(--ink-1); font-weight: 700; }
-.intro-body .intro-note {
-  font-size: 12.5px; color: var(--ink-3);
-  background: var(--paper-2); border-left: 3px solid var(--blue);
-  padding: 9px 12px; margin-top: 4px;
-}
-.intro-foot {
-  display: flex; gap: 8px; align-items: center;
-  margin-top: 24px;
-}
-.intro-skip {
-  flex: 0 0 auto;
-  background: var(--paper); border: 1.5px solid var(--line-2);
-  color: var(--ink-3);
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 12px; font-weight: 500;
-  padding: 11px 14px; transition: var(--t);
-}
-.intro-skip:hover { border-color: var(--ink-3); color: var(--ink-1); }
-.intro-confirm {
-  flex: 1 1 auto;
-  background: var(--ink-1); border: 1.5px solid var(--ink-1);
-  color: white;
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 13px; font-weight: 600;
-  padding: 11px 14px; transition: var(--t);
-}
-.intro-confirm:hover { background: var(--blue); border-color: var(--blue); }
-@media (max-width: 600px) {
-  .intro-box { padding: 28px 22px 22px; }
-  .intro-title { font-size: 22px; }
-  .intro-foot { flex-direction: column-reverse; align-items: stretch; }
-  .intro-skip { width: 100%; }
-}
-
 .auth-modal-bg {
   display: none; position: fixed; inset: 0; z-index: 9000;
   background: rgba(14,14,16,.55); backdrop-filter: blur(6px);
@@ -3254,24 +3160,6 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
     <div class="drag-overlay-icon">📂</div>
     <div class="drag-overlay-text">data.json 놓기</div>
     <div class="drag-overlay-sub">DROP TO LOAD</div>
-  </div>
-</div>
-
-<!-- ══ INTRO POPUP ══ -->
-<div class="intro-modal-bg" id="introModal" onclick="introModalBgClick(event)">
-  <div class="intro-box">
-    <button class="intro-close" onclick="closeIntroModal(false)" aria-label="닫기">✕</button>
-    <div class="intro-tag">BETA</div>
-    <div class="intro-title">잉크닷서치에 오신 것을 환영합니다</div>
-    <div class="intro-body">
-      <p>잉크닷서치는 4년 동안 잉크닷이 모아온 <b>중앙행정기관과 광역자치단체</b> 유튜브에 게재된 영상의 성과 데이터를 분석해보는 플랫폼입니다.</p>
-      <p>현재는 <b>베타 운영 중</b>으로 베이직(무료) 등급의 가입만 가능합니다.</p>
-      <p class="intro-note">※ 가입 후 관리자가 등급을 변경해 드립니다.</p>
-    </div>
-    <div class="intro-foot">
-      <button class="intro-skip" onclick="closeIntroModal(true)">오늘 하루 보지 않기</button>
-      <button class="intro-confirm" onclick="closeIntroModal(false)">확인</button>
-    </div>
   </div>
 </div>
 
@@ -3757,14 +3645,6 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   </main>
 </div>
 
-<!-- ══ FOOTER ══ -->
-<footer class="site-footer">
-  <span class="footer-brand">잉크닷서치</span>
-  <span class="footer-sep">·</span>
-  <span class="footer-contact">CONTACT</span>
-  <a href="mailto:oksuby@gmail.com" class="footer-mail">oksuby@gmail.com</a>
-</footer>
-
 <!-- VIDEO MODAL -->
 <div class="modal-bg" id="videoModal" onclick="closeModal(event)">
   <div class="modal">
@@ -4213,26 +4093,7 @@ function saveFeatureSettings() {
   setTimeout(() => { msg.textContent = ''; }, 4000);
 }
 
-// ── 관리자 Edge Function 공통 호출 헬퍼 ──
-async function callAdmin(action, payload = {}) {
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session?.access_token) throw new Error('로그인이 필요합니다.');
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/inkdot-admin`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.access_token}`,
-      'apikey': SUPABASE_ANON
-    },
-    body: JSON.stringify({ action, ...payload })
-  });
-  let out = {};
-  try { out = await res.json(); } catch (_) {}
-  if (!res.ok || out?.error) throw new Error(out?.error || `HTTP ${res.status}`);
-  return out;
-}
-
-// ── 전체 회원 목록 불러오기 (Edge Function: get_all_users)
+// ── 전체 회원 목록 불러오기 (RPC: get_all_users)
 async function loadAllMembers() {
   const wrap = document.getElementById('adminMemberTableWrap');
   const countEl = document.getElementById('adminMemberCount');
@@ -4248,7 +4109,8 @@ async function loadAllMembers() {
   }
 
   try {
-    const { data } = await callAdmin('get_all_users');
+    const { data, error } = await _supabase.rpc('get_all_users');
+    if (error) throw error;
 
     if (!data || data.length === 0) {
       wrap.innerHTML = `<div class="admin-no-result">등록된 회원이 없습니다.</div>`;
@@ -4302,7 +4164,7 @@ async function loadAllMembers() {
 
   } catch (e) {
     wrap.innerHTML = `<div class="admin-no-result">오류: ${esc(e.message)}</div>`;
-    if (msgEl) { msgEl.textContent = 'inkdot-admin Edge Function 호출에 실패했습니다.'; msgEl.className = 'admin-msg err'; }
+    if (msgEl) { msgEl.textContent = 'RPC 함수가 설치되지 않았습니다. 아래 SQL을 Supabase에서 실행해주세요.'; msgEl.className = 'admin-msg err'; }
   }
 }
 
@@ -4316,11 +4178,14 @@ async function saveMemberPlan(userId, email) {
   if (stsEl) { stsEl.textContent = '저장 중…'; stsEl.style.color = 'var(--ink-4)'; }
 
   try {
-    await callAdmin('save_plan', { userId, plan, email });
+    const { error } = await _supabase
+      .from('user_plans')
+      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
+    if (error) throw error;
     if (stsEl) { stsEl.textContent = '✓'; stsEl.style.color = '#059669'; }
     setTimeout(() => { if (stsEl) stsEl.textContent = ''; }, 2500);
   } catch (e) {
-    if (stsEl) { stsEl.textContent = '✗ ' + e.message; stsEl.style.color = '#dc2626'; }
+    if (stsEl) { stsEl.textContent = '✗'; stsEl.style.color = '#dc2626'; }
   }
   btn.disabled = false;
 }
@@ -4339,10 +4204,17 @@ async function adminSearchUser() {
   }
 
   try {
-    const { data } = await callAdmin('search_user', { email });
+    // user_plans 테이블에서 이메일로 검색 (join)
+    // 실제 구현: admin API 또는 RPC 필요 (anon key는 제한됨)
+    // 여기서는 user_plans 테이블에 email 컬럼이 있다고 가정
+    const { data, error } = await _supabase
+      .from('user_plans')
+      .select('user_id, plan, email, full_name')
+      .eq('email', email)
+      .limit(5);
 
-    if (!data?.length) {
-      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.</div>`;
+    if (error || !data?.length) {
+      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.<br><small style="color:var(--ink-5)">user_plans 테이블에 email 컬럼이 있어야 합니다.</small></div>`;
       return;
     }
 
@@ -4371,10 +4243,12 @@ async function saveUserPlan(userId, email) {
   if (msgEl) msgEl.textContent = '저장 중...';
 
   try {
-    await callAdmin('save_plan', { userId, plan, email });
+    const { error } = await _supabase
+      .from('user_plans')
+      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
+
+    if (error) throw error;
     if (msgEl) { msgEl.textContent = '✓ 저장됨'; msgEl.style.color = '#059669'; }
-    const curEl = document.querySelector(`#urow_${userId} .admin-user-current`);
-    if (curEl) curEl.textContent = `현재: ${plan}`;
     setTimeout(() => { if (msgEl) msgEl.textContent = ''; }, 3000);
   } catch (e) {
     if (msgEl) { msgEl.textContent = '오류: ' + e.message; msgEl.style.color = '#dc2626'; }
@@ -5933,6 +5807,8 @@ function renderSoloAnalysis(orgName, data, metrics) {
 
   // 단일 분석 차트 전역 데이터 저장
   const SOLO_METRIC_COLORS = { v: COLOR_A, l: '#e07b00', c: '#1a9e5f' };
+  // 선택된 지표만 탭으로 노출 (지표 미선택 시 전체)
+  const selMks = (metrics && metrics.length) ? ['v','l','c'].filter(m => metrics.includes(m)) : ['v','l','c'];
   const allMks = ['v','l','c'];
   const byMonAllFull = { v:{}, l:{}, c:{} };
   data.forEach(d => {
@@ -5946,12 +5822,13 @@ function renderSoloAnalysis(orgName, data, metrics) {
   const rangeEnd   = xEnd   || dataMonthsFull[dataMonthsFull.length-1] || '';
   const months = genMonthRange(rangeStart, rangeEnd);
 
+  const soloActiveMk = selMks[0] || 'v';
   window.__soloChartData = { months, byMonAll: byMonAllFull, colors: SOLO_METRIC_COLORS };
-  window.__soloActiveMk = 'v';
+  window.__soloActiveMk = soloActiveMk;
 
-  // 탭 버튼 HTML
-  const soloTabs = allMks.map(mk =>
-    `<button class="cmp-chart-tab${mk==='v'?' on':''}" onclick="soloChartTab('${mk}')">${METRIC_LABEL[mk]}</button>`
+  // 탭 버튼 HTML (선택된 지표만)
+  const soloTabs = selMks.map(mk =>
+    `<button class="cmp-chart-tab${mk===soloActiveMk?' on':''}" onclick="soloChartTab('${mk}')">${METRIC_LABEL[mk]}</button>`
   ).join('');
 
   const soloChartHtml = months.length >= 2 ? `
@@ -6368,10 +6245,12 @@ function renderCmpChart(orgA, orgB, dataA, dataB, metrics) {
 
   // 전역 데이터 저장 (탭 전환 시 재사용)
   __cmpChartData = { orgA, orgB, allMonths, byMonA, byMonB };
-  __cmpActiveMk = metrics[0] || 'v';
+  // 선택된 지표만 탭으로 노출 (지표 미선택 시 전체)
+  const selMks = (metrics && metrics.length) ? MKS.filter(m => metrics.includes(m)) : MKS.slice();
+  __cmpActiveMk = selMks[0] || 'v';
 
-  // 탭 버튼 HTML
-  const tabs = MKS.map(mk =>
+  // 탭 버튼 HTML (선택된 지표만)
+  const tabs = selMks.map(mk =>
     `<button class="cmp-chart-tab${mk===__cmpActiveMk?' on':''}" onclick="cmpChartTab('${mk}')">${METRIC_LABEL[mk]}</button>`
   ).join('');
 
@@ -6991,30 +6870,6 @@ function esc(s) {
 
 // ── Auth 초기화 (DOM 준비 후 즉시 실행) ──
 initAuth();
-
-// ── 오픈 전 안내 팝업 ──
-(function(){
-  try {
-    var KEY = 'inkdot_intro_dismiss_v1';
-    var until = localStorage.getItem(KEY);
-    if (until && Date.now() < parseInt(until, 10)) return;
-  } catch(e) {}
-  var bg = document.getElementById('introModal');
-  if (bg) requestAnimationFrame(function(){ bg.classList.add('open'); });
-})();
-function closeIntroModal(skipToday){
-  if (skipToday) {
-    try {
-      var end = new Date(); end.setHours(23,59,59,999);
-      localStorage.setItem('inkdot_intro_dismiss_v1', String(end.getTime()));
-    } catch(e) {}
-  }
-  var bg = document.getElementById('introModal');
-  if (bg) bg.classList.remove('open');
-}
-function introModalBgClick(e){
-  if (e.target && e.target.id === 'introModal') closeIntroModal(false);
-}
 </script>
 </body>
 </html>
