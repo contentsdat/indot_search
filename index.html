@@ -4093,7 +4093,22 @@ function saveFeatureSettings() {
   setTimeout(() => { msg.textContent = ''; }, 4000);
 }
 
-// ── 전체 회원 목록 불러오기 (RPC: get_all_users)
+// ── inkdot-admin Edge Function 공통 호출 헬퍼 ──
+async function callAdminFn(action, payload = {}) {
+  const { data, error } = await _supabase.functions.invoke('inkdot-admin', {
+    body: { action, ...payload }
+  });
+  // functions.invoke는 4xx/5xx일 때 error에 메시지를, data에 본문을 담아줌
+  if (error) {
+    // Edge Function이 반환한 JSON 에러 메시지를 우선 사용
+    const serverMsg = data && data.error ? data.error : error.message;
+    throw new Error(serverMsg || '요청 실패');
+  }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+
+// ── 전체 회원 목록 불러오기 (Edge Function: get_all_users)
 async function loadAllMembers() {
   const wrap = document.getElementById('adminMemberTableWrap');
   const countEl = document.getElementById('adminMemberCount');
@@ -4109,8 +4124,8 @@ async function loadAllMembers() {
   }
 
   try {
-    const { data, error } = await _supabase.rpc('get_all_users');
-    if (error) throw error;
+    const res = await callAdminFn('get_all_users');
+    const data = res?.data;
 
     if (!data || data.length === 0) {
       wrap.innerHTML = `<div class="admin-no-result">등록된 회원이 없습니다.</div>`;
@@ -4122,8 +4137,8 @@ async function loadAllMembers() {
     const planColors = { free: '#8b8b8d', basic: '#1d7aed', pro: '#9333ea', admin: '#e04c2f' };
 
     const rows = data.map(u => {
-      const joined = u.created_at
-        ? new Date(u.created_at).toLocaleDateString('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit' })
+      const joined = u.updated_at
+        ? new Date(u.updated_at).toLocaleDateString('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit' })
         : '—';
       const plan = u.plan || 'free';
       const planLabel = PLAN_FEATURES[plan]?.label || plan.toUpperCase();
@@ -4154,7 +4169,7 @@ async function loadAllMembers() {
         <table class="admin-member-table">
           <thead><tr>
             <th>이름 / 이메일</th>
-            <th>가입일</th>
+            <th>수정일</th>
             <th>현재 플랜</th>
             <th>저장</th>
           </tr></thead>
@@ -4164,7 +4179,7 @@ async function loadAllMembers() {
 
   } catch (e) {
     wrap.innerHTML = `<div class="admin-no-result">오류: ${esc(e.message)}</div>`;
-    if (msgEl) { msgEl.textContent = 'RPC 함수가 설치되지 않았습니다. 아래 SQL을 Supabase에서 실행해주세요.'; msgEl.className = 'admin-msg err'; }
+    if (msgEl) { msgEl.textContent = '회원 목록을 불러오지 못했습니다. (관리자 권한 또는 Edge Function 확인 필요)'; msgEl.className = 'admin-msg err'; }
   }
 }
 
@@ -4178,14 +4193,11 @@ async function saveMemberPlan(userId, email) {
   if (stsEl) { stsEl.textContent = '저장 중…'; stsEl.style.color = 'var(--ink-4)'; }
 
   try {
-    const { error } = await _supabase
-      .from('user_plans')
-      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
-    if (error) throw error;
+    await callAdminFn('save_plan', { userId, plan });
     if (stsEl) { stsEl.textContent = '✓'; stsEl.style.color = '#059669'; }
     setTimeout(() => { if (stsEl) stsEl.textContent = ''; }, 2500);
   } catch (e) {
-    if (stsEl) { stsEl.textContent = '✗'; stsEl.style.color = '#dc2626'; }
+    if (stsEl) { stsEl.textContent = '✗ ' + e.message; stsEl.style.color = '#dc2626'; }
   }
   btn.disabled = false;
 }
@@ -4204,17 +4216,11 @@ async function adminSearchUser() {
   }
 
   try {
-    // user_plans 테이블에서 이메일로 검색 (join)
-    // 실제 구현: admin API 또는 RPC 필요 (anon key는 제한됨)
-    // 여기서는 user_plans 테이블에 email 컬럼이 있다고 가정
-    const { data, error } = await _supabase
-      .from('user_plans')
-      .select('user_id, plan, email, full_name')
-      .eq('email', email)
-      .limit(5);
+    const res = await callAdminFn('search_user', { email });
+    const data = res?.data;
 
-    if (error || !data?.length) {
-      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.<br><small style="color:var(--ink-5)">user_plans 테이블에 email 컬럼이 있어야 합니다.</small></div>`;
+    if (!data?.length) {
+      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.</div>`;
       return;
     }
 
@@ -4243,11 +4249,7 @@ async function saveUserPlan(userId, email) {
   if (msgEl) msgEl.textContent = '저장 중...';
 
   try {
-    const { error } = await _supabase
-      .from('user_plans')
-      .upsert({ user_id: userId, plan, email, updated_at: new Date().toISOString() });
-
-    if (error) throw error;
+    await callAdminFn('save_plan', { userId, plan });
     if (msgEl) { msgEl.textContent = '✓ 저장됨'; msgEl.style.color = '#059669'; }
     setTimeout(() => { if (msgEl) msgEl.textContent = ''; }, 3000);
   } catch (e) {
