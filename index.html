@@ -3037,58 +3037,7 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   accent-color: var(--blue);
 }
 
-/* 사용자 검색/관리 */
-.admin-user-search {
-  display: flex; gap: 8px; margin-bottom: 16px;
-}
-.admin-user-search input {
-  flex: 1;
-  background: white; border: 1.5px solid var(--line-2); border-radius: 0;
-  padding: 8px 12px;
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 13px; color: var(--ink-1); outline: none;
-  transition: var(--t);
-}
-.admin-user-search input:focus { border-color: var(--blue); }
-.admin-user-search button {
-  background: var(--ink-1); color: white; border: none;
-  padding: 8px 18px;
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 12px; font-weight: 600; letter-spacing: 0.03em;
-  cursor: pointer; transition: var(--t);
-}
-.admin-user-search button:hover { background: var(--blue); }
-.admin-user-result {
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 12px;
-}
-.admin-user-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; border: 1px solid var(--line-2);
-  background: white; margin-bottom: 6px;
-  flex-wrap: wrap;
-}
-.admin-user-email { flex: 1; min-width: 0; font-weight: 500; color: var(--ink-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.admin-user-current { color: var(--ink-4); font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; }
-.admin-plan-select {
-  appearance: none; padding: 4px 26px 4px 8px;
-  border: 1.5px solid var(--line-2);
-  background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%235a5a5c' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>") no-repeat right 6px center;
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 12px; font-weight: 600; color: var(--ink-1);
-  outline: none; cursor: pointer; transition: var(--t);
-}
-.admin-plan-select:focus { border-color: var(--blue); }
-.admin-save-plan {
-  background: var(--blue); color: white; border: none;
-  padding: 5px 12px;
-  font-family: 'Pretendard', -apple-system, sans-serif;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
-  cursor: pointer; transition: var(--t); white-space: nowrap;
-}
-.admin-save-plan:hover { background: var(--blue-2); }
-.admin-save-plan:disabled { opacity: .5; cursor: not-allowed; }
-.admin-user-msg { font-size: 11px; color: var(--ink-3); }
+/* 사용자 검색/관리 → 회원 관리 탭 검색으로 대체됨 (관련 스타일 제거) */
 .admin-no-result {
   padding: 24px; text-align: center; color: var(--ink-4);
   font-size: 12px; letter-spacing: 0.02em;
@@ -3106,10 +3055,77 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 .admin-msg { margin-top: 10px; font-family: 'Pretendard', -apple-system, sans-serif; font-size: 12px; }
 .admin-msg.ok { color: #059669; } .admin-msg.err { color: #dc2626; }
 
-/* 전체 회원 목록 */
-.admin-member-toolbar {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+/* 관리자 패널 탭 */
+.admin-tabs {
+  display: flex; gap: 2px;
+  border-bottom: 1.5px solid var(--ink-1);
+  margin-bottom: 24px;
 }
+.admin-tab {
+  background: none; border: none;
+  padding: 9px 16px 10px;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 13px; font-weight: 600; color: var(--ink-4);
+  cursor: pointer; transition: var(--t);
+  border-bottom: 2px solid transparent; margin-bottom: -1.5px;
+  letter-spacing: 0.01em; white-space: nowrap;
+}
+.admin-tab:hover { color: var(--ink-1); }
+.admin-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.admin-tab-panel { display: none; }
+.admin-tab-panel.active { display: block; }
+/* 탭 내부에서는 첫 섹션 타이틀 상단 여백 제거 */
+.admin-tab-panel .admin-section-title:first-child { margin-top: 0; }
+
+/* 회원 관리 툴바 (검색 + 개수 + 새로고침) */
+.admin-member-searchbar {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.admin-member-searchbox {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  border: 1.5px solid var(--line-2); background: white;
+  padding: 0 10px; height: 36px; transition: var(--t);
+}
+.admin-member-searchbox:focus-within { border-color: var(--blue); }
+.admin-member-searchbox svg { flex-shrink: 0; color: var(--ink-4); }
+.admin-member-searchbox input {
+  flex: 1; border: none; outline: none; background: transparent;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 13px; color: var(--ink-1); min-width: 0;
+}
+.admin-member-searchbox input::placeholder { color: var(--ink-4); }
+.admin-member-searchclear {
+  background: none; border: none; cursor: pointer; padding: 2px;
+  color: var(--ink-4); display: none; line-height: 0;
+}
+.admin-member-searchclear:hover { color: var(--ink-1); }
+.admin-member-searchclear.show { display: inline-flex; }
+
+/* 플랜 필터 칩 */
+.admin-member-filters {
+  display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.admin-filter-chip {
+  background: none; border: 1.5px solid var(--line-2);
+  padding: 4px 13px; border-radius: 999px;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  font-size: 11px; font-weight: 600; color: var(--ink-3);
+  cursor: pointer; transition: var(--t); letter-spacing: 0.02em;
+}
+.admin-filter-chip:hover { border-color: var(--blue); color: var(--blue); }
+.admin-filter-chip.active {
+  background: var(--blue); border-color: var(--blue); color: white;
+}
+
+/* 정렬 가능한 헤더 */
+.admin-member-table th.sortable { cursor: pointer; user-select: none; }
+.admin-member-table th.sortable:hover { color: var(--blue); }
+.admin-member-table th.sortable .sort-arrow {
+  font-size: 9px; margin-left: 3px; opacity: .4;
+}
+.admin-member-table th.sortable.sorted .sort-arrow { opacity: 1; color: var(--blue); }
+
+/* 전체 회원 목록 */
 .admin-member-count {
   font-family: 'Pretendard', -apple-system, sans-serif;
   font-size: 11px; color: var(--ink-4); letter-spacing: 0.02em;
@@ -3222,39 +3238,61 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
     <div class="admin-title">관리자 패널</div>
     <div class="admin-sub">INKDOT · ADMIN PANEL</div>
 
-    <!-- 섹션 1: 플랜별 기능 설정 -->
-    <div class="admin-section-title">플랜별 기능 설정 — PLAN FEATURES</div>
-    <div id="planFeatureTableWrap"></div>
-    <button class="admin-feature-save" onclick="saveFeatureSettings()">기능 설정 저장</button>
-    <div class="admin-msg" id="adminFeatureMsg"></div>
-
-    <!-- 섹션 2: 전체 회원 목록 -->
-    <div class="admin-section-title" style="margin-top:32px">전체 회원 목록 — ALL MEMBERS</div>
-    <div class="admin-member-toolbar">
-      <span class="admin-member-count" id="adminMemberCount">—</span>
-      <button class="admin-member-refresh" onclick="loadAllMembers()">↻ 새로고침</button>
+    <!-- 탭 네비게이션 -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="members" onclick="switchAdminTab('members')">회원 관리</button>
+      <button class="admin-tab" data-tab="features" onclick="switchAdminTab('features')">플랜 설정</button>
+      <button class="admin-tab" data-tab="guide" onclick="switchAdminTab('guide')">안내</button>
     </div>
-    <div id="adminMemberTableWrap">
-      <div class="admin-no-result">패널을 열면 자동으로 불러옵니다.</div>
-    </div>
-    <div class="admin-msg" id="adminMemberMsg"></div>
 
-    <!-- 섹션 3: 이메일 검색으로 플랜 변경 -->
-    <div class="admin-section-title" style="margin-top:32px">이메일 검색 — USER MANAGEMENT</div>
-    <div class="admin-user-search">
-      <input type="email" id="adminSearchEmail" placeholder="이메일로 사용자 검색..." onkeydown="if(event.key==='Enter')adminSearchUser()">
-      <button onclick="adminSearchUser()">검색</button>
-    </div>
-    <div id="adminUserResult"></div>
+    <!-- ── 탭 1: 회원 관리 ── -->
+    <div class="admin-tab-panel active" id="adminTabMembers">
+      <div class="admin-section-title">전체 회원 목록 — ALL MEMBERS</div>
 
-    <!-- 섹션 3: 플랜 가이드 -->
-    <div class="admin-section-title" style="margin-top:32px">플랜 구성 안내 — PLAN GUIDE</div>
-    <div style="font-family:'Pretendard',-apple-system,sans-serif;font-size:12px;color:var(--ink-3);line-height:1.7">
-      <strong style="color:var(--ink-1)">플랜 배정 방법:</strong> Supabase 대시보드 → Table Editor → <code style="background:var(--paper-2);padding:1px 5px">user_plans</code> 테이블에서
-      <code style="background:var(--paper-2);padding:1px 5px">plan</code> 컬럼을 <code style="background:var(--paper-2);padding:1px 5px">free / basic / pro / admin</code> 중 하나로 수동 지정합니다.<br>
-      또는 이 패널의 사용자 검색으로 플랜을 변경할 수 있습니다.<br><br>
-      <strong style="color:var(--ink-1)">Supabase 테이블 구조 (user_plans):</strong><br>
-      <code style="background:var(--paper-2);padding:4px 8px;display:inline-block;margin-top:4px">id (uuid, PK) · user_id (uuid, FK → auth.users) · plan (text) · updated_at (timestamptz)</code>
+      <div class="admin-member-searchbar">
+        <div class="admin-member-searchbox">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+          <input type="text" id="adminMemberSearch" placeholder="이름 또는 이메일 검색…" oninput="onMemberSearchInput()">
+          <button class="admin-member-searchclear" id="adminMemberSearchClear" onclick="clearMemberSearch()" aria-label="검색어 지우기">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <span class="admin-member-count" id="adminMemberCount">—</span>
+        <button class="admin-member-refresh" onclick="loadAllMembers()">↻ 새로고침</button>
+      </div>
+
+      <div class="admin-member-filters" id="adminMemberFilters">
+        <button class="admin-filter-chip active" data-plan="" onclick="setMemberFilter('')">전체</button>
+        <button class="admin-filter-chip" data-plan="free" onclick="setMemberFilter('free')">FREE</button>
+        <button class="admin-filter-chip" data-plan="basic" onclick="setMemberFilter('basic')">BASIC</button>
+        <button class="admin-filter-chip" data-plan="pro" onclick="setMemberFilter('pro')">PRO</button>
+        <button class="admin-filter-chip" data-plan="admin" onclick="setMemberFilter('admin')">ADMIN</button>
+      </div>
+
+      <div id="adminMemberTableWrap">
+        <div class="admin-no-result">패널을 열면 자동으로 불러옵니다.</div>
+      </div>
+      <div class="admin-msg" id="adminMemberMsg"></div>
+    </div>
+
+    <!-- ── 탭 2: 플랜 설정 ── -->
+    <div class="admin-tab-panel" id="adminTabFeatures">
+      <div class="admin-section-title">플랜별 기능 설정 — PLAN FEATURES</div>
+      <div id="planFeatureTableWrap"></div>
+      <button class="admin-feature-save" onclick="saveFeatureSettings()">기능 설정 저장</button>
+      <div class="admin-msg" id="adminFeatureMsg"></div>
+    </div>
+
+    <!-- ── 탭 3: 안내 ── -->
+    <div class="admin-tab-panel" id="adminTabGuide">
+      <div class="admin-section-title">플랜 구성 안내 — PLAN GUIDE</div>
+      <div style="font-family:'Pretendard',-apple-system,sans-serif;font-size:12px;color:var(--ink-3);line-height:1.7">
+        <strong style="color:var(--ink-1)">플랜 배정 방법:</strong> 회원 관리 탭에서 각 회원의 플랜을 직접 변경할 수 있습니다.<br>
+        또는 Supabase 대시보드 → Table Editor → <code style="background:var(--paper-2);padding:1px 5px">user_plans</code> 테이블에서
+        <code style="background:var(--paper-2);padding:1px 5px">plan</code> 컬럼을 <code style="background:var(--paper-2);padding:1px 5px">free / basic / pro / admin</code> 중 하나로 수동 지정할 수도 있습니다.<br><br>
+        <strong style="color:var(--ink-1)">Supabase 테이블 구조 (user_plans):</strong><br>
+        <code style="background:var(--paper-2);padding:4px 8px;display:inline-block;margin-top:4px">id (uuid, PK) · user_id (uuid, FK → auth.users) · plan (text) · updated_at (timestamptz)</code>
+      </div>
     </div>
   </div>
 </div>
@@ -4048,12 +4086,32 @@ function gatedExport() {
 
 function openAdminPanel() {
   toggleUserMenu(false);
+  switchAdminTab('members');          // 항상 회원 관리 탭으로 시작
   renderPlanFeatureTable();
   document.getElementById('adminModal').classList.add('open');
   loadAllMembers();
 }
 function closeAdminPanel() { document.getElementById('adminModal').classList.remove('open'); }
 function adminModalBgClick(e) { if (e.target === e.currentTarget) closeAdminPanel(); }
+
+// ── 관리자 패널 탭 전환 ──
+function switchAdminTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.tab === tab));
+  const panelMap = { members: 'adminTabMembers', features: 'adminTabFeatures', guide: 'adminTabGuide' };
+  Object.entries(panelMap).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', key === tab);
+  });
+}
+
+// ── 회원 목록 상태 (검색/필터/정렬) ──
+// 데이터는 window.__adminMembers 에 1회 저장하고, 조건 변경 시 tbody만 재렌더한다.
+// (서버 재호출 없이 즉시 반응. 회원 수가 수천 명 이상이면 oninput에 디바운스 권장.)
+window.__adminMembers = [];
+let adminMemberFilter = '';                 // '' | free | basic | pro | admin
+let adminMemberSearchQ = '';
+let adminMemberSort = { key: 'date', dir: 'desc' };  // key: name|date|plan, dir: asc|desc
 
 // 플랜 기능 테이블 렌더링
 function renderPlanFeatureTable() {
@@ -4146,59 +4204,158 @@ async function loadAllMembers() {
     const data = res?.data;
 
     if (!data || data.length === 0) {
+      window.__adminMembers = [];
+      if (countEl) countEl.textContent = '총 0명';
       wrap.innerHTML = `<div class="admin-no-result">등록된 회원이 없습니다.</div>`;
       return;
     }
 
-    if (countEl) countEl.textContent = `총 ${data.length}명`;
+    // 원본 데이터 저장 (정렬용 파생 필드 포함)
+    window.__adminMembers = data.map(u => ({
+      user_id: u.user_id,
+      email: u.email || '',
+      full_name: u.full_name || '',
+      plan: u.plan || 'free',
+      updated_at: u.updated_at || null,
+      _ts: u.updated_at ? new Date(u.updated_at).getTime() : 0
+    }));
 
-    const planColors = { free: '#8b8b8d', basic: '#1d7aed', pro: '#9333ea', admin: '#e04c2f' };
-
-    const rows = data.map(u => {
-      const joined = u.updated_at
-        ? new Date(u.updated_at).toLocaleDateString('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit' })
-        : '—';
-      const plan = u.plan || 'free';
-      const planLabel = PLAN_FEATURES[plan]?.label || plan.toUpperCase();
-      const planColor = planColors[plan] || '#8b8b8d';
-      const opts = ['free','basic','pro','admin'].map(p =>
-        `<option value="${p}" ${plan===p?'selected':''}>${PLAN_FEATURES[p]?.label||p.toUpperCase()}</option>`
-      ).join('');
-
-      const nameStr = u.full_name ? `<span style="font-weight:600">${esc(u.full_name)}</span><br><span style="color:var(--ink-4);font-size:11px">${esc(u.email)}</span>` : esc(u.email);
-
-      return `<tr id="mrow_${u.user_id}">
-        <td class="col-email" title="${esc(u.email)}">${nameStr}</td>
-        <td class="col-date">${joined}</td>
-        <td class="col-plan">
-          <select class="admin-inline-select" id="msel_${u.user_id}" title="플랜 변경">
-            ${opts}
-          </select>
-        </td>
-        <td class="col-action">
-          <button class="admin-inline-save" onclick="saveMemberPlan('${u.user_id}','${esc(u.email)}')">저장</button>
-          <span class="admin-inline-status" id="msts_${u.user_id}"></span>
-        </td>
-      </tr>`;
-    }).join('');
-
-    wrap.innerHTML = `
-      <div class="admin-member-table-wrap">
-        <table class="admin-member-table">
-          <thead><tr>
-            <th>이름 / 이메일</th>
-            <th>수정일</th>
-            <th>현재 플랜</th>
-            <th>저장</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
-
+    renderMemberTable();
   } catch (e) {
+    window.__adminMembers = [];
     wrap.innerHTML = `<div class="admin-no-result">오류: ${esc(e.message)}</div>`;
+    if (countEl) countEl.textContent = '—';
     if (msgEl) { msgEl.textContent = '회원 목록을 불러오지 못했습니다. (관리자 권한 또는 Edge Function 확인 필요)'; msgEl.className = 'admin-msg err'; }
   }
+}
+
+// ── 회원 테이블 렌더 (검색/필터/정렬 적용) ──
+const PLAN_ORDER = { free: 0, basic: 1, pro: 2, admin: 3 };
+function renderMemberTable() {
+  const wrap = document.getElementById('adminMemberTableWrap');
+  const countEl = document.getElementById('adminMemberCount');
+  if (!wrap) return;
+
+  const all = window.__adminMembers || [];
+
+  // 1) 필터 (플랜)
+  let list = adminMemberFilter
+    ? all.filter(u => u.plan === adminMemberFilter)
+    : all.slice();
+
+  // 2) 검색 (이름/이메일, 대소문자 무시) — 입력값은 DOM에 넣지 않고 비교에만 사용
+  const q = adminMemberSearchQ.trim().toLowerCase();
+  if (q) list = list.filter(u =>
+    u.email.toLowerCase().includes(q) || u.full_name.toLowerCase().includes(q));
+
+  // 3) 정렬
+  const { key, dir } = adminMemberSort;
+  const mul = dir === 'asc' ? 1 : -1;
+  list.sort((a, b) => {
+    let cmp = 0;
+    if (key === 'name') {
+      cmp = (a.full_name || a.email).localeCompare(b.full_name || b.email, 'ko');
+    } else if (key === 'plan') {
+      cmp = (PLAN_ORDER[a.plan] ?? 0) - (PLAN_ORDER[b.plan] ?? 0);
+    } else { // date
+      cmp = a._ts - b._ts;
+    }
+    return cmp * mul;
+  });
+
+  if (countEl) {
+    countEl.textContent = (q || adminMemberFilter)
+      ? `${list.length} / 총 ${all.length}명`
+      : `총 ${all.length}명`;
+  }
+
+  if (list.length === 0) {
+    wrap.innerHTML = `<div class="admin-no-result">조건에 맞는 회원이 없습니다.</div>`;
+    return;
+  }
+
+  const rows = list.map(u => {
+    const joined = u.updated_at
+      ? new Date(u.updated_at).toLocaleDateString('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit' })
+      : '—';
+    const opts = ['free','basic','pro','admin'].map(p =>
+      `<option value="${p}" ${u.plan===p?'selected':''}>${PLAN_FEATURES[p]?.label||p.toUpperCase()}</option>`
+    ).join('');
+    const nameStr = u.full_name
+      ? `<span style="font-weight:600">${esc(u.full_name)}</span><br><span style="color:var(--ink-4);font-size:11px">${esc(u.email)}</span>`
+      : esc(u.email);
+
+    return `<tr id="mrow_${u.user_id}">
+      <td class="col-email" title="${esc(u.email)}">${nameStr}</td>
+      <td class="col-date">${joined}</td>
+      <td class="col-plan">
+        <select class="admin-inline-select" id="msel_${u.user_id}" title="플랜 변경">
+          ${opts}
+        </select>
+      </td>
+      <td class="col-action">
+        <button class="admin-inline-save" onclick="saveMemberPlan('${u.user_id}','${esc(u.email)}')">저장</button>
+        <span class="admin-inline-status" id="msts_${u.user_id}"></span>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const arrow = k => {
+    if (adminMemberSort.key !== k) return `<span class="sort-arrow">▲▼</span>`;
+    return `<span class="sort-arrow">${adminMemberSort.dir === 'asc' ? '▲' : '▼'}</span>`;
+  };
+  const sortedCls = k => adminMemberSort.key === k ? 'sortable sorted' : 'sortable';
+
+  wrap.innerHTML = `
+    <div class="admin-member-table-wrap">
+      <table class="admin-member-table">
+        <thead><tr>
+          <th class="${sortedCls('name')}" onclick="setMemberSort('name')">이름 / 이메일 ${arrow('name')}</th>
+          <th class="${sortedCls('date')}" onclick="setMemberSort('date')">수정일 ${arrow('date')}</th>
+          <th class="${sortedCls('plan')}" onclick="setMemberSort('plan')">현재 플랜 ${arrow('plan')}</th>
+          <th>저장</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── 검색 입력 핸들러 ──
+function onMemberSearchInput() {
+  const inp = document.getElementById('adminMemberSearch');
+  adminMemberSearchQ = inp ? inp.value : '';
+  const clr = document.getElementById('adminMemberSearchClear');
+  if (clr) clr.classList.toggle('show', !!adminMemberSearchQ);
+  renderMemberTable();
+}
+function clearMemberSearch() {
+  const inp = document.getElementById('adminMemberSearch');
+  if (inp) inp.value = '';
+  adminMemberSearchQ = '';
+  const clr = document.getElementById('adminMemberSearchClear');
+  if (clr) clr.classList.remove('show');
+  renderMemberTable();
+  if (inp) inp.focus();
+}
+
+// ── 플랜 필터 칩 ──
+function setMemberFilter(plan) {
+  adminMemberFilter = plan;
+  document.querySelectorAll('#adminMemberFilters .admin-filter-chip').forEach(chip =>
+    chip.classList.toggle('active', chip.dataset.plan === plan));
+  renderMemberTable();
+}
+
+// ── 정렬 (같은 컬럼 재클릭 시 방향 토글) ──
+function setMemberSort(key) {
+  if (adminMemberSort.key === key) {
+    adminMemberSort.dir = adminMemberSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    adminMemberSort.key = key;
+    // 이름은 오름차순, 수정일/플랜은 내림차순을 기본으로
+    adminMemberSort.dir = key === 'name' ? 'asc' : 'desc';
+  }
+  renderMemberTable();
 }
 
 async function saveMemberPlan(userId, email) {
@@ -4212,66 +4369,13 @@ async function saveMemberPlan(userId, email) {
 
   try {
     await callAdminFn('save_plan', { userId, plan });
-    if (stsEl) { stsEl.textContent = '✓'; stsEl.style.color = '#059669'; }
+    // 메모리 상의 회원 데이터도 갱신 → 필터/정렬이 최신 플랜 반영
+    const m = (window.__adminMembers || []).find(u => u.user_id === userId);
+    if (m) m.plan = plan;
+    if (stsEl) { stsEl.textContent = '✓ 저장됨'; stsEl.style.color = '#059669'; }
     setTimeout(() => { if (stsEl) stsEl.textContent = ''; }, 2500);
   } catch (e) {
     if (stsEl) { stsEl.textContent = '✗ ' + e.message; stsEl.style.color = '#dc2626'; }
-  }
-  btn.disabled = false;
-}
-
-
-async function adminSearchUser() {
-  const email = document.getElementById('adminSearchEmail').value.trim();
-  const resultEl = document.getElementById('adminUserResult');
-  if (!email) return;
-
-  resultEl.innerHTML = `<div class="admin-no-result">검색 중...</div>`;
-
-  if (SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
-    resultEl.innerHTML = `<div class="admin-no-result">⚠ Supabase 연결이 필요합니다.</div>`;
-    return;
-  }
-
-  try {
-    const res = await callAdminFn('search_user', { email });
-    const data = res?.data;
-
-    if (!data?.length) {
-      resultEl.innerHTML = `<div class="admin-no-result">사용자를 찾을 수 없습니다.</div>`;
-      return;
-    }
-
-    resultEl.innerHTML = data.map(u => `
-      <div class="admin-user-row" id="urow_${u.user_id}">
-        <span class="admin-user-email">${esc(u.full_name ? u.full_name + ' · ' : '')}${esc(u.email || email)}</span>
-        <span class="admin-user-current">현재: ${u.plan || 'free'}</span>
-        <select class="admin-plan-select" id="psel_${u.user_id}">
-          ${['free','basic','pro','admin'].map(p => `<option value="${p}" ${u.plan===p?'selected':''}>${PLAN_FEATURES[p]?.label||p}</option>`).join('')}
-        </select>
-        <button class="admin-save-plan" onclick="saveUserPlan('${u.user_id}', '${esc(u.email||email)}')">저장</button>
-        <span class="admin-user-msg" id="umsg_${u.user_id}"></span>
-      </div>`).join('');
-  } catch (e) {
-    resultEl.innerHTML = `<div class="admin-no-result">오류: ${esc(e.message)}</div>`;
-  }
-}
-
-async function saveUserPlan(userId, email) {
-  const plan = document.getElementById(`psel_${userId}`)?.value;
-  const msgEl = document.getElementById(`umsg_${userId}`);
-  const btn = document.querySelector(`#urow_${userId} .admin-save-plan`);
-  if (!plan || !btn) return;
-
-  btn.disabled = true;
-  if (msgEl) msgEl.textContent = '저장 중...';
-
-  try {
-    await callAdminFn('save_plan', { userId, plan });
-    if (msgEl) { msgEl.textContent = '✓ 저장됨'; msgEl.style.color = '#059669'; }
-    setTimeout(() => { if (msgEl) msgEl.textContent = ''; }, 3000);
-  } catch (e) {
-    if (msgEl) { msgEl.textContent = '오류: ' + e.message; msgEl.style.color = '#dc2626'; }
   }
   btn.disabled = false;
 }
