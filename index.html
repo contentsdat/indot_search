@@ -1808,32 +1808,60 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 }
 
 /* ──────────────────────────────────────── MODE TABS (SEARCH / COMPARE) */
+.mode-tabs-lead {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px; font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 10px;
+  letter-spacing: 0.01em;
+}
 .mode-tabs {
   display: flex;
   gap: 0;
   margin-bottom: 28px;
   border: 1.5px solid var(--ink-1);
-  width: fit-content;
+  width: 520px;
+  max-width: 100%;
   box-shadow: 4px 4px 0 var(--ink-1);
 }
 .mode-tab {
-  background: transparent; border: none;
+  position: relative;
+  flex: 1 1 0;
+  box-sizing: border-box;
+  background: var(--blue-tint); border: none;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 12px; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-3);
-  padding: 10px 26px;
-  display: flex; align-items: center; gap: 8px;
+  color: var(--blue);
+  padding: 12px 16px;
+  text-align: left;
+  display: block;
   border-right: 1.5px solid var(--ink-1);
   transition: var(--t);
   cursor: pointer;
 }
 .mode-tab:last-child { border-right: none; }
-.mode-tab:hover:not(.on) { color: var(--blue); background: var(--blue-tint); }
-.mode-tab.on { background: var(--ink-1); color: white; }
+.mode-tab .mode-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.mode-tab .mode-desc {
+  font-size: 11px; font-weight: 500;
+  margin-top: 3px;
+  color: #4a5bce;
+}
 .mode-tab .mode-icon { font-size: 13px; }
-.mode-tab-ext { text-decoration: none; color: var(--ink-3); }
-.mode-tab-ext:hover { color: var(--blue); background: var(--blue-tint); }
+.mode-tab:hover:not(.on) { background: var(--blue-tint-2); }
+.mode-tab.on { background: var(--ink-1); color: white; }
+.mode-tab.on .mode-desc { color: rgba(255,255,255,0.7); }
+.mode-tab-ext { text-decoration: none; }
+.mode-tab .mode-badge {
+  position: absolute; top: -8px; right: 8px;
+  background: var(--blue); color: #fff;
+  font-size: 9px; font-weight: 700;
+  padding: 2px 6px; border-radius: 3px;
+  letter-spacing: 0.05em;
+}
+.mode-tab.on .mode-badge { display: none; }
 
 /* ──────────────────────────────────────── COMPARE PANEL */
 #comparePanel { display: none; }
@@ -2600,7 +2628,7 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
     padding: 9px 14px;
     min-height: 44px;
   }
-  .mode-tab { padding: 12px 18px; }
+  .mode-tab { padding: 12px 12px; }
   .cmp-metric-btn { height: 44px; }
 }
 
@@ -2610,7 +2638,9 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   .preset { padding: 12px 14px; }
   .hero-sub { font-size: 14px; }
   .mode-tabs { width: 100%; }
-  .mode-tab { flex: 1; justify-content: center; }
+  .mode-tab { padding: 10px 8px; }
+  .mode-tab .mode-title { font-size: 11px; letter-spacing: 0.04em; }
+  .mode-tab .mode-desc { font-size: 10px; }
 }
 
 /* ──────────────────────────────────────── SUBSCRIBER CHART */
@@ -3469,16 +3499,22 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   </div>
 
   <!-- MODE TABS -->
+  <div class="mode-tabs-lead">3가지 방식으로 데이터를 탐색하세요 ↓</div>
   <div class="mode-tabs">
     <button class="mode-tab on" id="tabSearch" onclick="gatedSwitchMode('search')">
-      <span class="mode-icon">⌕</span> Search
+      <span class="mode-title"><span class="mode-icon">⌕</span> Search</span>
+      <span class="mode-desc">키워드로 영상 찾기</span>
     </button>
     <button class="mode-tab" id="tabCompare" onclick="gatedSwitchMode('compare')">
-      <span class="mode-icon">⇄</span> Compare
+      <span class="mode-badge">추천</span>
+      <span class="mode-title"><span class="mode-icon">⇄</span> Compare</span>
+      <span class="mode-desc">기관끼리 비교</span>
     </button>
     <a class="mode-tab mode-tab-ext" href="https://inkdot.kr" target="_blank" rel="noopener">
-      <span class="mode-icon">◈</span> 분석
-      <svg style="width:10px;height:10px;opacity:0.5;margin-left:2px" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 8.5l7-7M4 1.5h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="mode-title"><span class="mode-icon">◈</span> 분석
+        <svg style="width:10px;height:10px;opacity:0.5;margin-left:2px" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 8.5l7-7M4 1.5h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="mode-desc">심층 리포트</span>
     </a>
   </div>
 
