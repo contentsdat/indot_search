@@ -1808,60 +1808,32 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 }
 
 /* ──────────────────────────────────────── MODE TABS (SEARCH / COMPARE) */
-.mode-tabs-lead {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 13px; font-weight: 700;
-  color: var(--blue);
-  margin-bottom: 10px;
-  letter-spacing: 0.01em;
-}
 .mode-tabs {
   display: flex;
   gap: 0;
   margin-bottom: 28px;
   border: 1.5px solid var(--ink-1);
-  width: 520px;
-  max-width: 100%;
+  width: fit-content;
   box-shadow: 4px 4px 0 var(--ink-1);
 }
 .mode-tab {
-  position: relative;
-  flex: 1 1 0;
-  box-sizing: border-box;
-  background: var(--blue-tint); border: none;
+  background: transparent; border: none;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: var(--blue);
-  padding: 12px 16px;
-  text-align: left;
-  display: block;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 10px 26px;
+  display: flex; align-items: center; gap: 8px;
   border-right: 1.5px solid var(--ink-1);
   transition: var(--t);
   cursor: pointer;
 }
 .mode-tab:last-child { border-right: none; }
-.mode-tab .mode-title {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12px; font-weight: 700;
-  letter-spacing: 0.08em; text-transform: uppercase;
-}
-.mode-tab .mode-desc {
-  font-size: 11px; font-weight: 500;
-  margin-top: 3px;
-  color: #4a5bce;
-}
-.mode-tab .mode-icon { font-size: 13px; }
-.mode-tab:hover:not(.on) { background: var(--blue-tint-2); }
+.mode-tab:hover:not(.on) { color: var(--blue); background: var(--blue-tint); }
 .mode-tab.on { background: var(--ink-1); color: white; }
-.mode-tab.on .mode-desc { color: rgba(255,255,255,0.7); }
-.mode-tab-ext { text-decoration: none; }
-.mode-tab .mode-badge {
-  position: absolute; top: -8px; right: 8px;
-  background: var(--blue); color: #fff;
-  font-size: 9px; font-weight: 700;
-  padding: 2px 6px; border-radius: 3px;
-  letter-spacing: 0.05em;
-}
-.mode-tab.on .mode-badge { display: none; }
+.mode-tab .mode-icon { font-size: 13px; }
+.mode-tab-ext { text-decoration: none; color: var(--ink-3); }
+.mode-tab-ext:hover { color: var(--blue); background: var(--blue-tint); }
 
 /* ──────────────────────────────────────── COMPARE PANEL */
 #comparePanel { display: none; }
@@ -2628,7 +2600,7 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
     padding: 9px 14px;
     min-height: 44px;
   }
-  .mode-tab { padding: 12px 12px; }
+  .mode-tab { padding: 12px 18px; }
   .cmp-metric-btn { height: 44px; }
 }
 
@@ -2638,9 +2610,7 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   .preset { padding: 12px 14px; }
   .hero-sub { font-size: 14px; }
   .mode-tabs { width: 100%; }
-  .mode-tab { padding: 10px 8px; }
-  .mode-tab .mode-title { font-size: 11px; letter-spacing: 0.04em; }
-  .mode-tab .mode-desc { font-size: 10px; }
+  .mode-tab { flex: 1; justify-content: center; }
 }
 
 /* ──────────────────────────────────────── SUBSCRIBER CHART */
@@ -3214,6 +3184,163 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 .admin-inline-save:hover { background: var(--blue-2); }
 .admin-inline-save:disabled { opacity: .5; cursor: not-allowed; }
 .admin-inline-status { font-size: 10px; margin-left: 4px; color: var(--ink-4); }
+
+/* ══════════ TREND PANEL ══════════ */
+#trendPanel{display:none}
+#trendPanel.active{display:block}
+@keyframes trFloat{0%{transform:translate(0,0)}25%{transform:translate(1.5px,-2px)}50%{transform:translate(-1px,1.5px)}75%{transform:translate(-1.5px,-1px)}100%{transform:translate(0,0)}}
+.tr-sec{margin:0 0 60px}
+.tr-head{display:flex;align-items:flex-start;gap:22px}
+.tr-num{font-family:'Instrument Serif',serif;font-style:italic;font-size:86px;line-height:.78;color:#cdc9bc;letter-spacing:-.04em;flex-shrink:0}
+.tr-kicker{display:block;font-size:10px;color:var(--blue,#1a3eff);letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:6px}
+.tr-head h2{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:36px;letter-spacing:-.02em;margin:0}
+.tr-desc{font-size:12.5px;color:#5a5a5c;margin:8px 0 0;max-width:700px;line-height:1.6}
+.tr-note{font-size:11px;color:#8b8b8d;margin:14px 0 0}
+.tr-seg{display:flex;border:1.5px solid #0e0e10;box-shadow:4px 4px 0 #0e0e10}
+.tr-seg button{padding:9px 16px;border:none;background:transparent;color:#5a5a5c;font:inherit;font-size:12.5px;font-weight:600;letter-spacing:-.01em;cursor:pointer}
+.tr-seg button.on{background:#0e0e10;color:#fff}
+.tr-ctl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* 산점도 */
+.tr-bleed{width:100%;padding:24px 0 18px;border-top:1.5px solid #0e0e10;border-bottom:1.5px solid #0e0e10}
+.tr-plot{position:relative;width:100%;padding-bottom:46%}
+.tr-plot svg{display:block;position:absolute;top:0;left:0}
+.tr-tick{position:absolute;font-size:11px;font-weight:500;color:#5a5a5c;white-space:nowrap}
+.tr-axis{position:absolute;font-size:10px;color:#a8a79f}
+.tr-th{position:absolute;cursor:pointer;will-change:transform,left,top;opacity:0;transform:scale(.34);
+  transition:left 980ms cubic-bezier(.16,1,.3,1),top 980ms cubic-bezier(.16,1,.3,1),transform 980ms cubic-bezier(.16,1,.3,1),opacity 460ms ease-out}
+.tr-th.in{opacity:1;transform:none}
+.tr-th.float{animation:trFloat var(--dur,6s) ease-in-out var(--dly,0s) infinite}
+.tr-th-in{width:100%;height:100%;border:1.5px solid #0e0e10;background:#0e0e10;color:#fff;overflow:hidden;box-shadow:2px 2px 0 rgba(14,14,16,.12);display:flex;align-items:center;justify-content:center;position:relative;transition:transform 160ms cubic-bezier(.4,0,.2,1)}
+.tr-th.hero .tr-th-in{border-width:2.5px;border-color:var(--blue,#1a3eff);box-shadow:5px 5px 0 rgba(26,62,255,.22)}
+.tr-th:hover{z-index:50;animation-play-state:paused}
+.tr-th:hover .tr-th-in{transform:scale(1.4)}
+.tr-th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tr-sh{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.66),rgba(0,0,0,.05) 60%)}
+.tr-lb{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;line-height:1;padding:0 3px 4px;width:100%;height:100%}
+.tr-lb .r{font-size:9.5px;font-weight:700;letter-spacing:-.02em;opacity:.9;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.tr-lb .o{font-size:10.5px;line-height:1.1;text-align:center;font-weight:700;letter-spacing:-.02em;text-shadow:0 1px 3px rgba(0,0,0,.75)}
+.tr-th.hero .tr-lb .r{font-size:13px}
+.tr-th.hero .tr-lb .o{font-size:15px;letter-spacing:-.03em}
+.tr-th.hero .tr-lb{padding-bottom:7px;gap:2px}
+#trHover{position:absolute;z-index:60;width:238px;background:#fff;border:1.5px solid #0e0e10;box-shadow:6px 6px 0 rgba(14,14,16,.14);padding:12px 13px;pointer-events:none;display:none}
+#trHoverFrame{height:120px;border:1.5px solid #0e0e10;margin-bottom:9px}
+.tr-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:#5a5a5c}
+.tr-tag{background:var(--blue,#1a3eff);color:#fff;font-size:10px;font-weight:600;letter-spacing:.06em;padding:3px 9px}
+.tr-tag.dark{background:#0e0e10}
+
+/* 조회수 막대 */
+.tr-bars{background:#fff;border:1.5px solid #0e0e10;padding:16px 18px}
+.tr-row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #ebeae3;cursor:pointer}
+.tr-row:last-child{border-bottom:none}
+.tr-row:hover .tr-track{outline:1.5px solid var(--blue,#1a3eff)}
+.tr-rank{width:22px;text-align:right;font-size:12px;font-weight:700;color:#8b8b8d;letter-spacing:-.02em}
+.tr-bthumb{width:52px;height:30px;flex-shrink:0;border:1.5px solid #0e0e10}
+.tr-track{flex:1;min-width:0;height:30px;background:#f3f2ec;position:relative;overflow:hidden}
+.tr-fill{height:100%}
+.tr-base{position:absolute;inset:0}
+.tr-blb{position:absolute;inset:0;display:flex;align-items:center;gap:8px;padding:0 10px 0 12px}
+.tr-blb .o{font-size:12px;font-weight:600;white-space:nowrap;letter-spacing:-.01em}
+.tr-blb .t{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.tr-blb .v{font-size:12px;font-weight:700;margin-left:auto;letter-spacing:-.02em}
+.tr-base .o,.tr-base .v{color:#0e0e10}
+.tr-base .t{color:#5a5a5c}
+.tr-clip{position:absolute;top:0;bottom:0;left:0;overflow:hidden}
+.tr-clip .o,.tr-clip .v{color:#fff}
+.tr-clip .t{color:rgba(255,255,255,.9)}
+
+/* 프레임 공통 */
+.tr-frame{position:relative;display:block;overflow:hidden;background:#ebeae3}
+.tr-frame img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+
+/* 02 떠오르는 기관 */
+.tr-rise-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.tr-rise{display:flex;flex-direction:column;gap:10px;background:#fff;border:1.5px solid #0e0e10;padding:14px 18px 12px;color:#0e0e10;cursor:pointer;text-align:left;font:inherit;box-shadow:4px 4px 0 transparent;transition:box-shadow 180ms cubic-bezier(.4,0,.2,1),transform 180ms cubic-bezier(.4,0,.2,1)}
+.tr-rise:hover{box-shadow:6px 6px 0 var(--blue,#1a3eff);transform:translate(-2px,-2px)}
+.tr-rise.eng{background:#f3f2ec}
+.tr-rise-top{display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
+.tr-org{font-size:15px;font-weight:600;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-metric{font-size:10px;font-weight:600;color:#5a5a5c;border:1px solid #cdc9bc;padding:2px 7px;white-space:nowrap;flex-shrink:0;letter-spacing:.02em}
+.tr-rise.eng .tr-metric{color:var(--blue,#1a3eff);border-color:var(--blue,#1a3eff)}
+.tr-big{font-size:22px;font-weight:700;letter-spacing:-.03em}
+.tr-cap{font-size:10px;color:#8b8b8d;letter-spacing:.02em}
+.tr-spark{position:relative;display:block;width:100%;padding-bottom:30%}
+.tr-spark svg{display:block;position:absolute;inset:0}
+.tr-pk{position:absolute;font-size:10px;font-weight:700;color:var(--blue,#1a3eff);white-space:nowrap;letter-spacing:-.01em}
+.tr-wk{display:flex;justify-content:space-between;margin-top:8px;font-size:9.5px;color:#a8a79f}
+.tr-wk b{color:#0e0e10;font-weight:700}
+.tr-goto{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px;padding-top:9px;border-top:1px solid #ebeae3;font-size:10.5px;color:var(--blue,#1a3eff);font-weight:600}
+.tr-loc{font-size:9px;font-weight:700;color:#fff;background:oklch(0.62 0.16 55);padding:1px 5px;letter-spacing:.04em;flex-shrink:0}
+
+/* 03 카드 */
+.tr-hero1{display:flex;align-items:stretch;background:#fff;border:1.5px solid #0e0e10;color:#0e0e10;margin-bottom:20px;cursor:pointer;text-align:left;font:inherit;padding:0;width:100%;box-shadow:6px 6px 0 transparent;transition:box-shadow 200ms cubic-bezier(.4,0,.2,1),transform 200ms cubic-bezier(.4,0,.2,1)}
+.tr-hero1:hover{box-shadow:8px 8px 0 var(--blue,#1a3eff);transform:translate(-3px,-3px)}
+.tr-hero1-img{flex:1;min-width:0;aspect-ratio:16/9;border-right:1.5px solid #0e0e10}
+.tr-hero1-body{display:flex;flex-direction:column;justify-content:space-between;width:38%;min-width:280px;padding:26px 28px 24px}
+.tr-hero1-num{font-family:'Instrument Serif',serif;font-style:italic;font-size:70px;line-height:.72;color:var(--blue,#1a3eff);letter-spacing:-.04em}
+.tr-hero1-title{font-size:21px;font-weight:700;letter-spacing:-.03em;line-height:1.3;text-wrap:pretty}
+.tr-hero1-stats{display:flex;gap:26px;border-top:1.5px solid #0e0e10;padding-top:14px;margin-top:20px}
+.tr-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:min-content;align-items:start;gap:16px}
+.tr-card{display:flex;flex-direction:column;background:#fff;border:1.5px solid #0e0e10;color:#0e0e10;cursor:pointer;text-align:left;font:inherit;padding:0;box-shadow:4px 4px 0 transparent;transition:box-shadow 180ms cubic-bezier(.4,0,.2,1),transform 180ms cubic-bezier(.4,0,.2,1)}
+.tr-card:hover{box-shadow:6px 6px 0 var(--blue,#1a3eff);transform:translate(-2px,-2px)}
+.tr-vthumb{aspect-ratio:16/9;width:100%;border-bottom:1.5px solid #0e0e10}
+.tr-vrank{position:absolute;bottom:0;right:0;z-index:2;background:#0e0e10;color:#fff;font-size:11px;font-weight:700;letter-spacing:-.02em;padding:3px 8px}
+.tr-vbody{padding:12px 14px 14px;display:flex;flex-direction:column}
+.tr-vorg{font-size:10px;font-weight:600;color:var(--blue,#1a3eff);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.tr-vtitle{font-size:13px;font-weight:600;letter-spacing:-.02em;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tr-vstats{display:flex;gap:12px;font-size:10.5px;color:#8b8b8d;padding-top:10px;margin-top:auto}
+.tr-vstats b{color:#0e0e10;font-weight:700}
+
+/* 연결 CTA */
+.tr-bridge{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:44px 0 8px}
+.tr-bridge button{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1.5px dashed #0e0e10;padding:22px 24px;cursor:pointer;text-align:left;font:inherit;color:#0e0e10;transition:background 160ms,border-style 160ms}
+.tr-bridge button:hover{background:#0e0e10;color:#fff;border-style:solid}
+.tr-bridge .bt{display:block;font-family:'Instrument Serif',serif;font-style:italic;font-size:22px;margin-bottom:4px}
+.tr-bridge .bs{display:block;font-size:12px;opacity:.7}
+.tr-bridge .ba{font-size:20px;flex-shrink:0}
+
+@media (max-width:820px){
+  .tr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tr-rise-grid,.tr-bridge{grid-template-columns:1fr}
+  .tr-hero1{flex-direction:column}
+  .tr-hero1-body{width:100%;min-width:0;padding:20px}
+  .tr-num{font-size:60px}
+  .tr-head h2{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){
+  .tr-th{transition:none!important;animation:none!important;opacity:1;transform:none}
+}
+
+/* ═══ 트렌드형 헤더/네비 (trend.html 이식, td- 접두어로 격리) ═══ */
+.td-ser{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400}
+.td-hero{padding:34px 32px 26px;display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;border-bottom:1.5px solid #0e0e10;max-width:1320px;margin:0 auto}
+.td-eyebrow{font-size:11px;color:#5a5a5c;letter-spacing:.06em;text-transform:uppercase;transition:opacity .3s}
+.td-hero h1{font-size:38px;font-weight:700;letter-spacing:-.03em;line-height:1.12;margin:0;text-wrap:pretty;transition:opacity .3s}
+.td-hero h1 .td-ser{word-spacing:.14em;letter-spacing:-.02em}
+.td-hero-stats{display:flex;align-items:flex-end;gap:22px;padding-bottom:4px;margin-right:auto;margin-left:64px}
+.td-stat-grp{display:flex;gap:26px}
+.td-stat-div{width:1.5px;align-self:stretch;background:#cdc9bc;display:block}
+.td-stat-grp+.td-stat-div+.td-stat-grp dd{color:#5a5a5c}
+.td-hero-stats dt{font-size:10px;color:#5a5a5c;letter-spacing:.02em;margin:0}
+.td-hero-stats dd{margin:0;font-size:28px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.td-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border-left:1.5px solid #0e0e10;border-bottom:1.5px solid #0e0e10;margin:28px auto 40px;max-width:1320px}
+.td-nav a,.td-nav button{display:flex;align-items:center;gap:14px;padding:18px 20px;border-right:1.5px solid #0e0e10;color:#0e0e10;background:transparent;cursor:pointer;font-family:inherit;text-align:left;border-top:none;border-bottom:none;border-left:none;width:100%}
+.td-nav a:hover,.td-nav button:hover{background:#1a3eff;color:#fff}
+.td-nav a.on,.td-nav button.on{background:#0e0e10;color:#fff}
+.td-nav a.on:hover,.td-nav button.on:hover{background:#1a3eff}
+.td-nav-i{font-size:11px;letter-spacing:.06em;opacity:.5}
+.td-nav .on .td-nav-i{opacity:.6}
+.td-nav-t{display:flex;flex-direction:column;line-height:1.25}
+.td-nav-t b{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.td-nav-t span{font-size:11px;opacity:.65}
+@media (max-width:720px){
+  .td-hero{padding:26px 18px 22px}
+  .td-hero h1{font-size:28px}
+  .td-hero-stats{margin-left:0;gap:14px;flex-wrap:wrap}
+  .td-stat-grp{gap:18px}
+  .td-hero-stats dd{font-size:22px}
+  .td-nav{margin:22px auto 32px}
+}
 </style>
 </head>
 <body>
@@ -3483,43 +3610,135 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   </div>
 </header>
 
-<!-- HERO -->
+<!-- HERO (트렌드형, 탭에 따라 문구 변경) -->
 <section class="hero">
-  <div class="hero-grid">
+  <div class="td-hero">
     <div>
-      <div class="hero-num">VOL.05 — ARCHIVE / 2026</div>
-      <h1 class="hero-title">공공기관<br>유튜브, <span class="it">전부</span><br>찾아 드립니다.</h1>
+      <div class="td-eyebrow" id="tdEyebrow">This week in public-sector youtube</div>
+      <h1 id="tdHeroTitle">이번 주 공공기관 유튜브,<br><span class="td-ser">반응은 어디에 몰렸나</span></h1>
     </div>
-    <div class="hero-side">
-      <span class="label">DATABASE</span>
-      <span class="val blue" id="heroBigCount">—</span>
-      <span class="label" style="margin-top:8px">SINCE 2021.08</span>
-      <span class="val" id="heroWeeks">—</span>
-    </div>
+    <dl class="td-hero-stats">
+      <div class="td-stat-grp">
+        <div><dt>이번 주 영상</dt><dd style="color:#1a3eff" id="heroBigCount">—</dd></div>
+        <div><dt>기관</dt><dd id="heroOrgs">—</dd></div>
+      </div>
+      <span class="td-stat-div"></span>
+      <div class="td-stat-grp">
+        <div><dt>누적 주차</dt><dd id="heroWeeks">—</dd></div>
+        <div><dt>총 영상</dt><dd id="heroTotal">—</dd></div>
+      </div>
+    </dl>
   </div>
 
-  <!-- MODE TABS -->
-  <div class="mode-tabs-lead">3가지 방식으로 데이터를 탐색하세요 ↓</div>
-  <div class="mode-tabs">
-    <button class="mode-tab on" id="tabSearch" onclick="gatedSwitchMode('search')">
-      <span class="mode-title"><span class="mode-icon">⌕</span> Search</span>
-      <span class="mode-desc">키워드로 영상 찾기</span>
-    </button>
-    <button class="mode-tab" id="tabCompare" onclick="gatedSwitchMode('compare')">
-      <span class="mode-badge">추천</span>
-      <span class="mode-title"><span class="mode-icon">⇄</span> Compare</span>
-      <span class="mode-desc">기관끼리 비교</span>
-    </button>
-    <a class="mode-tab mode-tab-ext" href="https://inkdot.kr" target="_blank" rel="noopener">
-      <span class="mode-title"><span class="mode-icon">◈</span> 분석
-        <svg style="width:10px;height:10px;opacity:0.5;margin-left:2px" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 8.5l7-7M4 1.5h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-      <span class="mode-desc">심층 리포트</span>
-    </a>
+  <!-- NAV (01~04, 트렌드형) -->
+  <nav class="td-nav">
+    <button class="on" id="tabTrend" onclick="gatedSwitchMode('trend')"><span class="td-nav-i">01</span><span class="td-nav-t"><b>트렌드</b><span>이번 주 반응 지도</span></span></button>
+    <button id="tabSearch" onclick="gatedSwitchMode('search')"><span class="td-nav-i">02</span><span class="td-nav-t"><b>검색</b><span>키워드로 영상 찾기</span></span></button>
+    <button id="tabCompare" onclick="gatedSwitchMode('compare')"><span class="td-nav-i">03</span><span class="td-nav-t"><b>비교</b><span>기관끼리 나란히 보기</span></span></button>
+    <a href="https://inkdot.kr" target="_blank" rel="noopener"><span class="td-nav-i">04</span><span class="td-nav-t"><b>분석 ↗</b><span>기관 심층 리포트</span></span></a>
+  </nav>
+
+
+  <!-- ══════════ TREND PANEL ══════════ -->
+  <div id="trendPanel" class="active">
+
+    <section class="tr-sec">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:26px 0 18px">
+        <div class="tr-head">
+          <span class="tr-num">01</span>
+          <span style="display:block;padding-top:6px">
+            <span class="tr-kicker">Trend</span>
+            <h2 id="trTitle">조회와 반응의 지도</h2>
+            <p class="tr-desc">점 하나가 영상 한 편 — <span id="trDist"></span>. 오른쪽 위일수록 많이 보고 많이 반응한 영상이며, 썸네일은 조회수 구간별로 반응이 가장 좋았던 영상입니다. 썸네일·막대를 누르면 영상 상세가 열립니다.</p>
+          </span>
+        </div>
+        <div class="tr-ctl">
+          <div class="tr-seg" id="trFilter">
+            <button data-cat="all" class="on">전체</button>
+            <button data-cat="central">중앙</button>
+            <button data-cat="local">지방</button>
+          </div>
+          <div class="tr-seg" id="trMode">
+            <button data-mode="eng" class="on">참여율 분포</button>
+            <button data-mode="view">조회수 순위</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="trEngView">
+        <div class="tr-bleed">
+          <div class="tr-plot" id="trPlot">
+            <svg viewBox="0 0 680 355" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true" id="trPlotSvg"></svg>
+            <div class="tr-axis" style="right:0;bottom:0">조회수(로그) →</div>
+            <div class="tr-axis" style="left:0;top:0">참여율 ↑ (제곱근 축)</div>
+            <div id="trHover">
+              <span class="tr-frame" id="trHoverFrame"><img alt="" id="trHoverImg"></span>
+              <div style="font-size:10px;color:var(--blue,#1a3eff);font-weight:600" id="trHoverOrg"></div>
+              <div style="font-size:12px;line-height:1.35;margin:3px 0 7px;font-weight:600;letter-spacing:-.01em" id="trHoverTitle"></div>
+              <div style="display:flex;gap:10px;font-size:10px;color:#8b8b8d;flex-wrap:wrap" id="trHoverStats"></div>
+              <div style="font-size:10.5px;color:#0e0e10;margin-top:4px;font-weight:600" id="trHoverEng"></div>
+            </div>
+          </div>
+        </div>
+        <div class="tr-legend">
+          <span class="tr-tag" id="trTag">참여율 1위</span>
+          <span id="trCallout"></span>
+          <span style="display:flex;align-items:center;gap:14px;margin-left:auto;font-size:10.5px;color:#8b8b8d">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#0e0e10;opacity:.4;display:block"></span>중앙</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:oklch(0.62 0.16 55);display:block"></span>지방</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:16px;border-top:1px dashed #8b8b8d;display:block"></span>참여율 중위</span>
+          </span>
+        </div>
+      </div>
+
+      <div id="trViewView" style="display:none">
+        <div class="tr-bars" id="trBars"></div>
+        <div class="tr-legend"><span class="tr-tag dark">조회수 1위</span><span id="trViewCallout"></span></div>
+      </div>
+    </section>
+
+    <section class="tr-sec">
+      <div class="tr-head" style="margin-bottom:22px">
+        <span class="tr-num">02</span>
+        <span style="display:block;padding-top:6px">
+          <span class="tr-kicker">Rising</span>
+          <h2>떠오르는 기관</h2>
+          <p class="tr-desc" id="trRiseDesc"></p>
+        </span>
+      </div>
+      <div class="tr-rise-grid" id="trRiseGrid"></div>
+      <p class="tr-note" id="trRiseNote"></p>
+    </section>
+
+    <section class="tr-sec">
+      <div class="tr-head" style="margin-bottom:22px">
+        <span class="tr-num">03</span>
+        <span style="display:block;padding-top:6px">
+          <span class="tr-kicker">Hidden gems</span>
+          <h2>반응이 뜨거웠던 영상</h2>
+          <p class="tr-desc" id="trGemDesc"></p>
+        </span>
+      </div>
+      <div id="trHero1"></div>
+      <div class="tr-grid" id="trGrid"></div>
+      <p class="tr-note" id="trGemNote"></p>
+
+      <div class="tr-bridge">
+        <button onclick="trGoSearch('')">
+          <span><span class="bt">키워드로 찾아보기</span><span class="bs">48,550편 전체를 제목·기관·주차로 검색합니다</span></span>
+          <span class="ba">⌕</span>
+        </button>
+        <button onclick="trGoCompare('')">
+          <span><span class="bt">기관끼리 비교하기</span><span class="bs">두 기관의 조회·좋아요·댓글 추이를 나란히 놓습니다</span></span>
+          <span class="ba">⇄</span>
+        </button>
+      </div>
+    </section>
   </div>
+  <!-- ══════════ /TREND PANEL ══════════ -->
 
   <!-- SEARCH PANEL WRAPPER START -->
-  <div id="searchPanel">
+  <div id="searchPanel" class="hidden">
 
   <!-- 검색창 게이트 래퍼 -->
   <div id="searchGateWrap" style="position:relative">
@@ -4463,22 +4682,378 @@ const PAGE_SIZE = 15;
 // ─── Mode Switching ───
 function switchMode(mode) {
   currentMode = mode;
-  const isSearch = mode === 'search';
+  const isTrend   = mode === 'trend';
+  const isSearch  = mode === 'search';
+  const isCompare = mode === 'compare';
+  const tabTrend = document.getElementById('tabTrend');
+  if (tabTrend) tabTrend.classList.toggle('on', isTrend);
   document.getElementById('tabSearch').classList.toggle('on', isSearch);
-  document.getElementById('tabCompare').classList.toggle('on', !isSearch);
+  document.getElementById('tabCompare').classList.toggle('on', isCompare);
+  const tp = document.getElementById('trendPanel');
+  if (tp) tp.classList.toggle('active', isTrend);
   document.getElementById('searchPanel').classList.toggle('hidden', !isSearch);
-  document.getElementById('comparePanel').classList.toggle('active', !isSearch);
+  document.getElementById('comparePanel').classList.toggle('active', isCompare);
   document.getElementById('searchSummaryBand').style.display = isSearch ? '' : 'none';
   document.getElementById('searchResultArea').style.display = isSearch ? '' : 'none';
-  // Search 탭으로 돌아올 때 비교 결과 숨김
-  if (isSearch) {
+  if (!isCompare) {
     document.getElementById('cmpResult').classList.remove('active');
-  }
-  // Compare 탭 진입 시 결과 초기화
-  if (!isSearch) {
+  } else {
     document.getElementById('cmpResult').classList.remove('active');
     document.getElementById('cmpSubscriberWrap').innerHTML = '';
   }
+  // 탭에 따라 헤더 문구 교체 (분석은 외부 링크라 해당 없음)
+  updateHeroCopy(mode);
+
+  // 트렌드로 돌아오면 진입 모션을 다시 재생한다
+  if (isTrend && typeof trDrawScatter === 'function' && TR.cur.length) trDrawScatter();
+}
+
+// 탭별 헤더(eyebrow + 제목) 문구
+var HERO_COPY = {
+  trend:   { eb:'This week in public-sector youtube',
+             h:'이번 주 공공기관 유튜브,<br><span class="td-ser">반응은 어디에 몰렸나</span>' },
+  search:  { eb:'Search 48,550 archived videos',
+             h:'48,550편의 기록에서,<br><span class="td-ser">무엇이든 찾아냅니다</span>' },
+  compare: { eb:'Compare institutions side by side',
+             h:'기관과 기관 사이,<br><span class="td-ser">무엇이 다른가</span>' }
+};
+function updateHeroCopy(mode){
+  var c = HERO_COPY[mode]; if(!c) return;
+  var eb = document.getElementById('tdEyebrow');
+  var h  = document.getElementById('tdHeroTitle');
+  if(!eb || !h) return;
+  // 부드러운 전환: 살짝 페이드
+  eb.style.opacity = '0'; h.style.opacity = '0';
+  setTimeout(function(){
+    eb.textContent = c.eb;
+    h.innerHTML = c.h;
+    eb.style.opacity = '1'; h.style.opacity = '1';
+  }, 160);
+}
+
+
+/* ══════════════════ TREND (섹션 01·02·03) ══════════════════
+   host 앱이 이미 로드·정규화한 DB 를 그대로 읽는다. 별도 fetch 없음. */
+var TR = { cur:[], weeks:[], labels:[], span:[], series:[], filt:'all',
+           top:[], pos:[], bars:[], gems:[],
+           ENG_FLOOR:1000, DOT_MAX:100, TREND_WEEKS:8,
+           RISE_FLOOR:{v:3000,l:80,c:20} };
+var TR_LOC = 'oklch(0.62 0.16 55)';
+var TR_METRIC = {
+  v:{label:'조회수 기준',cap:'이번 주 조회수',fmt:function(x){return trMan(x);}},
+  l:{label:'좋아요 기준',cap:'이번 주 좋아요',fmt:function(x){return x.toLocaleString();}},
+  c:{label:'댓글 기준',cap:'이번 주 댓글',fmt:function(x){return x.toLocaleString();}}
+};
+var TR_FLOOR_TXT = {v:'전주 평균 조회수 3,000회 이상',l:'전주 평균 좋아요 80건 이상',c:'전주 평균 댓글 20건 이상'};
+
+function trMan(v){return v>=10000?(v/10000).toFixed(1)+'만':Number(v||0).toLocaleString();}
+function trWk(d){return d.yw+'-'+String(d.wk||0).padStart(2,'0');}
+function trShortWk(wl){return String(wl||'').replace(/^\d+년\s*/,'').replace('주차','주');}
+function trMedian(a){if(!a.length)return 0;var s=a.slice().sort(function(x,y){return x-y;});return s[Math.floor(s.length/2)];}
+function trVid(u){var m=(u||'').match(/(?:v=|shorts\/|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/);return m?m[1]:null;}
+function trThumb(d,big){
+  var id=trVid(d.u);
+  if(!id) return d.th||'';
+  return 'https://i.ytimg.com/vi/'+id+'/'+(big?'maxresdefault':'mqdefault')+'.jpg';
+}
+function trImg(d,big,cls){
+  var id=trVid(d.u);
+  var fb=id?' onerror="this.onerror=null;this.src=\'https://i.ytimg.com/vi/'+id+'/mqdefault.jpg\'"':'';
+  return '<img'+(cls?' class="'+cls+'"':'')+' src="'+trThumb(d,big)+'" alt="" loading="lazy" referrerpolicy="no-referrer"'+fb+'>';
+}
+
+function buildTrend(){
+  if(!DB || !DB.data) return;
+  var all = DB.data.filter(function(d){return d && d.o && d.v > 0;});
+  if(!all.length) return;
+
+  var wl = {};
+  all.forEach(function(d){ wl[trWk(d)] = d.wl || trWk(d); });
+  TR.weeks = Object.keys(wl).sort();
+  var last = TR.weeks[TR.weeks.length-1];
+
+  TR.cur = all.filter(function(d){return trWk(d)===last;}).map(function(d){
+    return { o:d.o, loc:(d.ot||'')==='지방', ty:(d.t||'')||'미상', v:d.v, l:d.l||0, c:d.c||0,
+             ti:d.ti||'', u:d.u||'', th:d.th||'', raw:d,
+             eng:d.v>0?((d.l||0)+(d.c||0))/d.v*100:0 };});
+
+  // 최근 N주 기관별 시계열
+  TR.span = TR.weeks.slice(-TR.TREND_WEEKS);
+  TR.labels = TR.span.map(function(w){return wl[w];});
+  var idx={}; TR.span.forEach(function(w,i){idx[w]=i;});
+  var S={};
+  all.forEach(function(d){
+    var w=trWk(d); if(!(w in idx)) return;
+    var s=S[d.o]||(S[d.o]={o:d.o,loc:(d.ot||'')==='지방',
+      v:new Array(TR.span.length).fill(0),l:new Array(TR.span.length).fill(0),c:new Array(TR.span.length).fill(0)});
+    var i=idx[w]; s.v[i]+=d.v; s.l[i]+=d.l||0; s.c[i]+=d.c||0;});
+  TR.series = Object.keys(S).map(function(k){return S[k];});
+
+  document.getElementById('trTitle').textContent = trShortWk(wl[last])+', 조회와 반응의 지도';
+  trDrawScatter(); trDrawBars(); trDrawRising(); trDrawGems();
+  trWireHover();
+}
+
+/* ── 스케일 ── */
+var TR_PW=680, TR_PH=355, TR_L=46, TR_R=30, TR_T=22, TR_B=40;
+var TR_VMIN=1000, TR_VMAX=100000, TR_EMAX=16;
+function trX(v){var lv=Math.log10(Math.min(Math.max(v,TR_VMIN),TR_VMAX));
+  return TR_L+(TR_PW-TR_L-TR_R)*(lv-Math.log10(TR_VMIN))/(Math.log10(TR_VMAX)-Math.log10(TR_VMIN));}
+function trY(e){return TR_T+(TR_PH-TR_T-TR_B)*(1-Math.sqrt(Math.min(Math.max(e,0),TR_EMAX)/TR_EMAX));}
+function trPool(){return TR.filt==='all'?TR.cur:TR.cur.filter(function(d){return TR.filt==='local'?d.loc:!d.loc;});}
+function trCloud(){return trPool().filter(function(d){return d.v>=TR.ENG_FLOOR;});}
+function trSample(C){
+  if(C.length<=TR.DOT_MAX) return C;
+  var s=C.slice().sort(function(a,b){return a.v-b.v;}),step=s.length/TR.DOT_MAX,out=[];
+  for(var i=0;i<TR.DOT_MAX;i++) out.push(s[Math.floor(i*step)]);
+  return out;
+}
+/* 조회수 구간 5등분 × 구간별 참여율 상위 2편 — 썸네일이 가로로 퍼진다 */
+function trPicks(){
+  var C=trCloud(),B=5,lo=Math.log10(TR_VMIN),hi=Math.log10(TR_VMAX),out=[],seen={};
+  for(var b=0;b<B;b++){
+    var a=lo+(hi-lo)*b/B, z=lo+(hi-lo)*(b+1)/B;
+    C.filter(function(d){var lv=Math.log10(Math.min(Math.max(d.v,TR_VMIN),TR_VMAX));
+        return lv>=a && (b===B-1?lv<=z:lv<z);})
+     .sort(function(x,y){return y.eng-x.eng;})
+     .filter(function(d){return !seen[d.o];})
+     .slice(0,2).forEach(function(d){seen[d.o]=1;out.push(d);});
+  }
+  return out;
+}
+function trRelax(items,sizes){
+  var p=items.map(function(d){return {x:trX(d.v),y:trY(d.eng)};});
+  for(var pass=0;pass<400;pass++){
+    var moved=false;
+    for(var a=0;a<p.length;a++)for(var b=a+1;b<p.length;b++){
+      var mx=(sizes[a][0]+sizes[b][0])/2+14, my=(sizes[a][1]+sizes[b][1])/2+12;
+      var dx=p[b].x-p[a].x, dy=p[b].y-p[a].y;
+      var ox=mx-Math.abs(dx), oy=my-Math.abs(dy);
+      if(ox>0&&oy>0){
+        if(oy/my<=ox/mx){var q=oy/2+1,s=dy>=0?1:-1;p[a].y-=s*q;p[b].y+=s*q;}
+        else{var q2=ox/2+1,s2=dx>=0?1:-1;p[a].x-=s2*q2;p[b].x+=s2*q2;}
+        moved=true;}}
+    p.forEach(function(pt,i){
+      pt.y=Math.min(Math.max(pt.y,TR_T+sizes[i][1]/2),TR_PH-TR_B-sizes[i][1]/2-4);
+      pt.x=Math.min(Math.max(pt.x,TR_L+sizes[i][0]/2+2),TR_PW-TR_R-sizes[i][0]/2);});
+    if(!moved)break;}
+  return p;
+}
+
+function trDrawScatter(){
+  var C=trCloud(), svg='', ticks='';
+  [0,0.5,1,2,4,8,16].forEach(function(e){var y=trY(e);
+    svg+='<line x1="46" x2="650" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="#e6e3da" stroke-width="0.5"></line>';
+    ticks+='<div class="tr-tick" style="right:'+(100-(TR_L-8)/TR_PW*100).toFixed(2)+'%;top:'+(y/TR_PH*100).toFixed(2)+'%;transform:translateY(-50%)">'+e+'%</div>';});
+  [1000,3162,10000,31623,100000].forEach(function(v,i){var x=trX(v);
+    svg+='<line x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="22" y2="315" stroke="'+(i%2?'#f1efe8':'#e6e3da')+'" stroke-width="0.5"></line>';
+    ticks+='<div class="tr-tick" style="left:'+(x/TR_PW*100).toFixed(2)+'%;top:'+((TR_PH-TR_B+8)/TR_PH*100).toFixed(2)+'%;transform:translateX(-50%)">'+trMan(Math.round(v/100)*100)+'</div>';});
+  trSample(C).forEach(function(d){
+    svg+='<circle cx="'+trX(d.v).toFixed(1)+'" cy="'+trY(d.eng).toFixed(1)+'" r="'+(d.loc?2.9:2.4)+'" fill="'+(d.loc?TR_LOC:'#0e0e10')+'" opacity="'+(d.loc?0.55:0.3)+'"></circle>';});
+  var me=trMedian(C.map(function(d){return d.eng;})), my=trY(me);
+  svg+='<line x1="46" x2="650" y1="'+my.toFixed(1)+'" y2="'+my.toFixed(1)+'" stroke="#8b8b8d" stroke-width="0.75" stroke-dasharray="5 5"></line>';
+  document.getElementById('trPlotSvg').innerHTML=svg;
+
+  TR.top=trPicks();
+  var best=TR.top.slice().sort(function(a,b){return b.eng-a.eng;})[0];
+  var sizes=TR.top.map(function(d){return d===best?[248,140]:[96,54];});
+  TR.pos=trRelax(TR.top,sizes);
+  var tiles=TR.top.map(function(d,i){
+    var isHero=d===best,w=sizes[i][0],h=sizes[i][1];
+    var dur=(5+((i*37)%30)/10).toFixed(1),dly=(-((i*53)%50)/10).toFixed(1);
+    var fx=(TR.pos[i].x/TR_PW*100).toFixed(2)+'%', fy=(TR.pos[i].y/TR_PH*100).toFixed(2)+'%';
+    return '<div class="tr-th'+(isHero?' hero':'')+'" data-i="'+i+'" data-x="'+fx+'" data-y="'+fy+'"'+
+      ' onclick="trOpenVideo(\'top\','+i+')" style="left:50%;top:47%;width:'+w+'px;height:'+h+'px;'+
+      'margin-left:'+(-w/2)+'px;margin-top:'+(-h/2)+'px;transition-delay:'+(90+i*55)+'ms;'+
+      '--dur:'+dur+'s;--dly:'+dly+'s;z-index:'+(isHero?6:1)+'">'+
+      '<div class="tr-th-in"'+(d.loc?' style="border-color:'+TR_LOC+'"':'')+'>'+trImg(d,isHero,'')+
+      '<span class="tr-sh"></span><span class="tr-lb"><span class="r">'+d.eng.toFixed(1)+'%</span>'+
+      '<span class="o">'+esc(d.o.slice(0,7))+'</span></span></div></div>';}).join('');
+
+  var plot=document.getElementById('trPlot');
+  clearTimeout(trDrawScatter._t);
+  Array.prototype.forEach.call(plot.querySelectorAll('.tr-th,.tr-tick'),function(n){n.remove();});
+  plot.insertAdjacentHTML('afterbegin',ticks+tiles);
+  var els=Array.prototype.slice.call(plot.querySelectorAll('.tr-th'));
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    els.forEach(function(n){n.style.left=n.getAttribute('data-x');n.style.top=n.getAttribute('data-y');n.classList.add('in');});});});
+  trDrawScatter._t=setTimeout(function(){
+    els.forEach(function(n){n.style.transition='opacity 200ms ease';n.classList.add('float');});
+  },90+els.length*55+1020);
+
+  document.getElementById('trTag').textContent=(TR.filt==='local'?'지방 ':TR.filt==='central'?'중앙 ':'')+'참여율 1위';
+  document.getElementById('trCallout').textContent=best?best.o+' — '+best.eng.toFixed(2)+'% · 조회 '+best.v.toLocaleString()+'회 (중위 '+me.toFixed(2)+'%)':'해당 없음';
+  document.getElementById('trDist').textContent='조회수 '+TR.ENG_FLOOR.toLocaleString()+'회 이상 '+C.length.toLocaleString()+'편 중 '+Math.min(C.length,TR.DOT_MAX)+'편 표본';
+}
+
+function trWireHover(){
+  if(trWireHover._done) return; trWireHover._done=true;
+  var plot=document.getElementById('trPlot'), card=document.getElementById('trHover');
+  plot.addEventListener('mouseover',function(e){
+    var th=e.target.closest?e.target.closest('.tr-th'):null; if(!th) return;
+    var i=+th.getAttribute('data-i'), d=TR.top[i], p=TR.pos[i]; if(!d) return;
+    var right=p.x/TR_PW>0.6;
+    document.getElementById('trHoverImg').src=trThumb(d,false);
+    document.getElementById('trHoverOrg').textContent=d.o+(d.loc?' · 지방':'');
+    document.getElementById('trHoverTitle').textContent=d.ti;
+    document.getElementById('trHoverStats').innerHTML='<span>'+esc(d.ty)+'</span><span>조회 '+d.v.toLocaleString()+'</span><span>♥ '+d.l.toLocaleString()+'</span><span>댓글 '+d.c.toLocaleString()+'</span>';
+    document.getElementById('trHoverEng').textContent='참여율 '+d.eng.toFixed(2)+'%';
+    card.style.display='block';
+    card.style.left=right?'auto':'calc('+(p.x/TR_PW*100).toFixed(2)+'% + 46px)';
+    card.style.right=right?'calc('+(100-p.x/TR_PW*100).toFixed(2)+'% + 46px)':'auto';
+    card.style.top='min('+Math.max(p.y/TR_PH*100-14,0).toFixed(2)+'%, 52%)';});
+  plot.addEventListener('mouseout',function(e){
+    if(e.target.closest&&e.target.closest('.tr-th')) card.style.display='none';});
+
+  document.getElementById('trFilter').addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});
+    TR.filt=b.getAttribute('data-cat'); trDrawScatter(); trDrawBars();});
+  document.getElementById('trMode').addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});
+    var eng=b.getAttribute('data-mode')==='eng';
+    document.getElementById('trEngView').style.display=eng?'':'none';
+    document.getElementById('trViewView').style.display=eng?'none':'';});
+}
+
+function trDrawBars(){
+  var B=trPool().slice().sort(function(a,b){return b.v-a.v;}).slice(0,10);
+  TR.bars=B;
+  document.getElementById('trBars').innerHTML=B.map(function(d,i){
+    var pct=+(d.v/B[0].v*100).toFixed(2), ratio=pct/100;
+    function lb(){return '<div class="tr-blb"><span class="o">'+esc(d.o)+'</span>'+
+      '<span class="t">'+esc(d.ti)+'</span><span class="v">'+trMan(d.v)+'</span></div>';}
+    return '<div class="tr-row" onclick="trOpenVideo(\'bar\','+i+')"><span class="tr-rank">'+(i+1)+'</span>'+
+      '<span class="tr-frame tr-bthumb">'+trImg(d,false,'')+'</span>'+
+      '<div class="tr-track"><div class="tr-fill" style="width:'+pct+'%;background:'+(i===0?(d.loc?TR_LOC:'var(--blue,#1a3eff)'):'#a8a79f')+'"></div>'+
+      '<div class="tr-base">'+lb()+'</div>'+
+      '<div class="tr-clip" style="width:'+pct+'%"><div style="position:relative;height:100%;width:calc(100% / '+ratio+')">'+lb()+'</div></div>'+
+      '</div></div>';}).join('');
+  document.getElementById('trViewCallout').textContent=B.length?B[0].o+' — '+B[0].v.toLocaleString()+'회 · '+B[0].ti:'';
+}
+
+/* ── 02 떠오르는 기관 ── */
+function trRatio(s,k){
+  var a=s[k], cur=a[a.length-1], prev=a.slice(0,-1).filter(function(x){return x>0;});
+  if(prev.length<3) return null;
+  var avg=prev.reduce(function(x,y){return x+y;},0)/prev.length;
+  if(avg<TR.RISE_FLOOR[k]) return null;
+  return {x:cur/avg, avg:avg, cur:cur};
+}
+function trDrawRising(){
+  var used={}, plan=[];
+  [['v',2],['l',1],['c',1]].forEach(function(spec){
+    TR.series.map(function(s){var r=trRatio(s,spec[0]);return r?{s:s,k:spec[0],r:r}:null;})
+      .filter(function(o){return o && !used[o.s.o];})
+      .sort(function(a,b){return b.r.x-a.r.x;})
+      .slice(0,spec[1]).forEach(function(o){used[o.s.o]=1;plan.push(o);});});
+
+  document.getElementById('trRiseGrid').innerHTML=plan.map(function(o){
+    var m=TR_METRIC[o.k], a=o.s[o.k];
+    return '<button class="tr-rise'+(o.k==='v'?'':' eng')+'" onclick="trGoCompare(\''+esc(o.s.o).replace(/'/g,"\\'")+'\')">'+
+      '<span class="tr-rise-top"><span style="min-width:0">'+
+      '<span style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+      '<span class="tr-org"'+(o.s.loc?' style="color:'+TR_LOC+'"':'')+'>'+esc(o.s.o)+'</span>'+
+      (o.s.loc?'<span class="tr-loc">지방</span>':'')+
+      '<span class="tr-metric">'+m.label+'</span></span>'+
+      '<span style="display:flex;align-items:baseline;gap:7px"><span class="tr-big">'+o.r.x.toFixed(1)+'배</span>'+
+      '<span class="tr-cap">직전 '+(a.length-1)+'주 평균 대비</span></span></span>'+
+      '<span style="text-align:right;white-space:nowrap"><span class="tr-cap" style="display:block">'+m.cap+'</span>'+
+      '<span style="font-size:13px;font-weight:700;letter-spacing:-.02em">'+m.fmt(o.r.cur)+'</span></span></span>'+
+      '<span style="display:block;border-top:1px solid #ebeae3;padding-top:11px">'+trLine(a,m.fmt)+
+      '<span class="tr-wk">'+TR.labels.map(function(w,i){
+        var s=trShortWk(w); return (i===0||i===a.length-1)?'<b>'+s+'</b>':(i%2?'<span>'+s+'</span>':'<span></span>');}).join('')+'</span></span>'+
+      '<span class="tr-goto"><span>이 기관 비교 분석</span><span>⇄</span></span></button>';}).join('');
+
+  var kinds=plan.map(function(o){return TR_FLOOR_TXT[o.k];}).filter(function(v,i,a){return a.indexOf(v)===i;});
+  document.getElementById('trRiseDesc').textContent='최근 '+TR.span.length+'주 추이입니다. 이번 주 수치를 직전 '+(TR.span.length-1)+'주 평균과 비교해 조회수 2곳, 좋아요 1곳, 댓글 1곳을 골랐습니다. 카드를 누르면 그 기관이 선택된 비교 탭으로 넘어갑니다.';
+  document.getElementById('trRiseNote').textContent='기준: '+kinds.join(' · ')+' — 직전 규모가 작으면 배수가 과장되므로 하한을 둡니다. 수집이 없던 주는 0으로 표시됩니다.';
+}
+
+function trLine(data,fmt){
+  var w=320,h=96,pad=9,mx=Math.max.apply(null,data)||1,n=data.length;
+  function XX(i){return pad+(w-pad*2)*i/(n-1);}
+  function YY(v){return pad+(h-pad*2)*(1-v/mx);}
+  var path=data.map(function(v,i){return (i?'L':'M')+XX(i).toFixed(1)+' '+YY(v).toFixed(1);}).join(' ');
+  var area='M'+XX(0).toFixed(1)+' '+(h-2)+' '+data.map(function(v,i){return 'L'+XX(i).toFixed(1)+' '+YY(v).toFixed(1);}).join(' ')+' L'+XX(n-1).toFixed(1)+' '+(h-2)+' Z';
+  var grid=[0.25,0.5,0.75].map(function(f){var y=pad+(h-pad*2)*f;
+    return '<line x1="0" x2="'+w+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="#f1efe8"></line>';}).join('');
+  var dots=data.map(function(v,i){var lastOne=i===n-1;
+    return '<circle cx="'+XX(i).toFixed(1)+'" cy="'+YY(v).toFixed(1)+'" r="'+(lastOne?4:2.4)+'" fill="'+(lastOne?'#1a3eff':'#fafaf7')+'" stroke="#1a3eff" stroke-width="'+(lastOne?1.8:1.5)+'"></circle>';}).join('');
+  var pk=data.indexOf(mx);
+  function lab(i,v){return '<span class="tr-pk" style="left:'+(XX(i)/w*100).toFixed(2)+'%;top:'+(YY(v)/h*100).toFixed(2)+'%;transform:translate('+(i>n/2?'-92%':'-8%')+',-140%)">'+fmt(v)+'</span>';}
+  return '<span class="tr-spark"><svg viewBox="0 0 '+w+' '+h+'" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true">'+
+    grid+'<path d="'+area+'" fill="#1a3eff" opacity="0.08"></path>'+
+    '<path d="'+path+'" fill="none" stroke="#1a3eff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>'+
+    dots+'</svg>'+lab(pk,mx)+(pk!==n-1?lab(n-1,data[n-1]):'')+'</span>';
+}
+
+/* ── 03 반응이 뜨거웠던 영상 ── */
+function trStat(k,v,color){
+  return '<span><span style="display:block;font-size:9.5px;color:#5a5a5c;letter-spacing:.04em">'+k+'</span>'+
+    '<span style="display:block;font-size:23px;font-weight:700;letter-spacing:-.03em;margin-top:2px'+(color?';color:'+color:'')+'">'+v+'</span></span>';
+}
+function trDrawGems(){
+  var seen={}, H=[];
+  TR.cur.filter(function(d){return d.v>=TR.ENG_FLOOR;}).sort(function(a,b){return b.eng-a.eng;})
+    .forEach(function(d){if(H.length<9&&!seen[d.o]){seen[d.o]=1;H.push(d);}});
+  TR.gems=H;
+  if(!H.length) return;
+  var h=H[0];
+  document.getElementById('trHero1').innerHTML='<button class="tr-hero1" onclick="trOpenVideo(\'gem\',0)">'+
+    '<span class="tr-frame tr-hero1-img">'+trImg(h,true,'')+'</span>'+
+    '<span class="tr-hero1-body"><span style="display:block">'+
+    '<span style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px">'+
+    '<span class="tr-hero1-num">01</span><span style="display:block;padding-top:6px">'+
+    '<span style="display:block;font-size:10px;color:#8b8b8d;letter-spacing:.08em;text-transform:uppercase;font-weight:600">참여율 1위</span>'+
+    '<span style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--blue,#1a3eff);margin-top:4px">'+esc(h.o)+(h.loc?'<span class="tr-loc">지방</span>':'')+'</span></span></span>'+
+    '<span class="tr-hero1-title">'+esc(h.ti)+'</span></span>'+
+    '<span class="tr-hero1-stats">'+trStat('참여율',h.eng.toFixed(2)+'%','var(--blue,#1a3eff)')+
+    trStat('조회수',h.v.toLocaleString())+trStat('좋아요',h.l.toLocaleString())+'</span></span></button>';
+
+  document.getElementById('trGrid').innerHTML=H.slice(1,9).map(function(d,i){
+    return '<button class="tr-card" onclick="trOpenVideo(\'gem\','+(i+1)+')">'+
+      '<span class="tr-frame tr-vthumb">'+trImg(d,false,'')+
+      '<span class="tr-vrank">#'+String(i+2).padStart(2,'0')+'</span></span>'+
+      '<span class="tr-vbody"><span class="tr-vorg">'+esc(d.o)+(d.loc?'<span class="tr-loc">지방</span>':'')+'</span>'+
+      '<span class="tr-vtitle">'+esc(d.ti)+'</span>'+
+      '<span class="tr-vstats"><span><b>'+d.eng.toFixed(2)+'%</b> 참여율</span><span>'+d.v.toLocaleString()+'회</span></span>'+
+      '</span></button>';}).join('');
+
+  document.getElementById('trGemDesc').textContent='조회수 순위와 별개로, 본 사람 대비 좋아요·댓글이 가장 많았던 영상입니다. 중앙·지방을 함께 봅니다. 카드를 누르면 영상 상세가 열립니다.';
+  document.getElementById('trGemNote').textContent='조회수 '+TR.ENG_FLOOR.toLocaleString()+'회 이상 '+TR.cur.filter(function(d){return d.v>=TR.ENG_FLOOR;}).length+'편 중 · 기관당 최대 1편 · 참여율 = (좋아요+댓글) ÷ 조회수';
+}
+
+// ─── 트렌드 → 검색·비교 연결 ───
+function trScrollTo(id){
+  const el = document.getElementById(id);
+  if (!el) return;
+  const y = el.getBoundingClientRect().top + window.scrollY - 90;
+  window.scrollTo({ top: y, behavior: 'smooth' });
+}
+function trGoSearch(kw){
+  switchMode('search');
+  const inp = document.getElementById('searchInput');
+  if (inp) { inp.value = kw || ''; if (typeof toggleSearchClear === 'function') toggleSearchClear(); }
+  trScrollTo('searchPanel');
+  if (kw) gatedDoSearch();
+}
+function trGoCompare(org){
+  switchMode('compare');
+  if (org) {
+    const sel = document.getElementById('cmpOrgA');
+    if (sel) {
+      const has = [...sel.options].some(o => o.value === org);
+      if (has) { sel.value = org; if (typeof onOrgAChange === 'function') onOrgAChange(); }
+    }
+  }
+  trScrollTo('comparePanel');
+}
+function trOpenVideo(bucket, i){
+  const arr = bucket === 'top' ? TR.top : bucket === 'bar' ? TR.bars : TR.gems;
+  const d = arr && arr[i];
+  if (d && d.raw) openModal(d.raw);
 }
 
 // ─── Topbar date ───
@@ -4662,8 +5237,20 @@ function initApp(json) {
     }, delay);
   }
 
-  heroCountUp('heroBigCount', totalCnt,  v => fmtN(Math.round(v)), 1600, 300);
-  heroCountUp('heroWeeks',    weeksCnt,  v => `${Math.round(v)} WEEKS`, 1800, 600);
+  // 헤더 통계 주입 함수 (buildTrend 이후 호출되어야 TR.cur 사용 가능)
+  window.__fillHeroStats = function(){
+    let twCnt = 0, twOrgs = 0;
+    try {
+      if (typeof TR !== 'undefined' && TR.cur && TR.cur.length) {
+        twCnt = TR.cur.length;
+        twOrgs = new Set(TR.cur.map(d => d.o)).size;
+      }
+    } catch(e){}
+    heroCountUp('heroBigCount', twCnt || 0, v => Math.round(v).toLocaleString(), 1600, 300);
+    heroCountUp('heroOrgs',     twOrgs || 0, v => String(Math.round(v)), 1600, 400);
+    heroCountUp('heroWeeks',    weeksCnt,  v => String(Math.round(v)), 1800, 500);
+    heroCountUp('heroTotal',    totalCnt,  v => Math.round(v).toLocaleString(), 1800, 600);
+  };
 
   const orgSel = document.getElementById('orgFilter');
   orgSel.innerHTML = '<option value="">전체 기관</option>';
@@ -4711,6 +5298,9 @@ function initApp(json) {
   buildPresets();
   buildWeeklyKeywords();
   applyFilters();
+  buildTrend();     // 트렌드 탭 집계
+  if (window.__fillHeroStats) window.__fillHeroStats();  // 헤더 통계(이번주 영상·기관 포함)
+  switchMode('trend');
   applyPlanGates(); // 앱 초기화 후 게이트 재적용
 }
 
