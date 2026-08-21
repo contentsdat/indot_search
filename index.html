@@ -4866,7 +4866,7 @@ function trDrawScatter(){
       ' onclick="trOpenVideo(\'top\','+i+')" style="left:50%;top:47%;width:'+w+'px;height:'+h+'px;'+
       'margin-left:'+(-w/2)+'px;margin-top:'+(-h/2)+'px;transition-delay:'+(90+i*55)+'ms;'+
       '--dur:'+dur+'s;--dly:'+dly+'s;z-index:'+(isHero?6:1)+'">'+
-      '<div class="tr-th-in"'+(d.loc?' style="border-color:'+TR_LOC+'"':'')+'>'+trImg(d,isHero,'')+
+      '<div class="tr-th-in"'+(d.loc?' style="border-color:'+TR_LOC+'"':'')+'>'+trImg(d,false,'')+
       '<span class="tr-sh"></span><span class="tr-lb"><span class="r">'+d.eng.toFixed(1)+'%</span>'+
       '<span class="o">'+esc(d.o.slice(0,7))+'</span></span></div></div>';}).join('');
 
