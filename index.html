@@ -135,6 +135,46 @@ function getLimitMsg(type) {
   --t: 180ms cubic-bezier(.4,0,.2,1);
 }
 
+/* ══ BRAND SPLASH ══ */
+.splash {
+  position: fixed; inset: 0; z-index: 100000;
+  background: var(--blue);
+  opacity: 1;
+  transition: opacity 520ms cubic-bezier(.4,0,.2,1);
+}
+.splash.hide { opacity: 0; pointer-events: none; }
+/* 로고를 화면 중앙이 아닌 좌상단 쪽으로 비대칭 배치 */
+.splash-stage {
+  position: absolute;
+  left: 38%; top: 42%;
+  transform: translate(-50%, -50%);
+}
+.splash-logo {
+  position: relative;
+  width: 88px; height: 88px;
+  border-radius: 50%;
+  background: var(--paper);
+  margin: 0 auto;
+  animation: splashGrow 1.5s cubic-bezier(.4,0,.2,1) forwards;
+}
+.splash-logo::after {
+  content: ''; position: absolute;
+  width: 26px; height: 26px;
+  top: 31px; left: 31px;
+  background: var(--blue);
+  border-radius: 50%;
+}
+.splash-sub { display: none; }
+/* 작게 시작 → 커지며 사라짐 (1회) */
+@keyframes splashGrow {
+  0%   { transform: scale(.55); opacity: 0; }
+  22%  { opacity: 1; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash-logo { animation: none; opacity: 1; }
+}
+
 html, body { background: var(--paper); }
 body {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -3342,11 +3382,27 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
   .td-hero-stats{margin-left:0;gap:14px;flex-wrap:wrap}
   .td-stat-grp{gap:18px}
   .td-hero-stats dd{font-size:22px}
-  .td-nav{margin:22px auto 32px}
+  .td-nav{grid-template-columns:1fr 1fr;margin:22px auto 32px}
+  .td-nav a,.td-nav button{padding:13px 14px;gap:9px}
+  .td-nav-t b{font-size:14px}
+  .td-nav-t span{font-size:10px}
+  /* 3·4번째 항목 아래 테두리 중복 방지 */
+  .td-nav a:nth-child(1) button,.td-nav>*:nth-child(1),.td-nav>*:nth-child(2){border-bottom:1.5px solid #0e0e10}
+}
+@media (max-width:400px){
+  .td-nav-t span{display:none}
+  .td-nav a,.td-nav button{padding:12px 12px}
 }
 </style>
 </head>
 <body>
+
+<!-- ══ BRAND SPLASH ══ -->
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="splash-stage">
+    <div class="splash-logo"></div>
+  </div>
+</div>
 
 <!-- drag overlay -->
 <div class="drag-overlay" id="dragOverlay">
@@ -3899,6 +3955,9 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
       <div id="cmpSubscriberWrap"></div>
       <div id="cmpTops"></div>
     </div>
+
+    <!-- COMPARE EXAMPLE (게스트/미선택 안내용 예시) -->
+    <div id="cmpExampleWrap" style="margin-top:14px"></div>
 
     <!-- SEARCH RESULT SUMMARY BAND: stats + top channels -->
     <div id="searchSummaryBand">
@@ -4700,9 +4759,21 @@ function switchMode(mode) {
   document.getElementById('searchResultArea').style.display = isSearch ? '' : 'none';
   if (!isCompare) {
     document.getElementById('cmpResult').classList.remove('active');
+    var exW0 = document.getElementById('cmpExampleWrap'); if(exW0) exW0.style.display='none';
   } else {
     document.getElementById('cmpResult').classList.remove('active');
     document.getElementById('cmpSubscriberWrap').innerHTML = '';
+    // 실제 비교 결과가 없으면 예시를 그려서 보여준다
+    var exW = document.getElementById('cmpExampleWrap');
+    if (exW) {
+      var hasResult = document.getElementById('cmpResult').classList.contains('active');
+      if (!hasResult) {
+        if (typeof cmpBuildExample === 'function') cmpBuildExample();
+        exW.style.display = exW.innerHTML.trim() ? '' : 'none';
+      } else {
+        exW.style.display = 'none';
+      }
+    }
   }
   // 탭에 따라 헤더 문구 교체 (분석은 외부 링크라 해당 없음)
   updateHeroCopy(mode);
@@ -4795,6 +4866,56 @@ function buildTrend(){
   document.getElementById('trTitle').textContent = trShortWk(wl[last])+', 조회와 반응의 지도';
   trDrawScatter(); trDrawBars(); trDrawRising(); trDrawGems();
   trWireHover();
+}
+
+/* ── 비교 탭 예시(게스트 안내용): 이번 주 인기 상위 2개 기관의 최근 추이 ── */
+function cmpBuildExample(){
+  var wrap = document.getElementById('cmpExampleWrap');
+  if(!wrap) return;
+  // 이번 주 상위 2개 기관 (TR.cur 기반 조회수 합)
+  if(!TR.cur || !TR.cur.length || !TR.series || !TR.series.length){ wrap.innerHTML=''; return; }
+  var byOrg={}; TR.cur.forEach(function(d){byOrg[d.o]=(byOrg[d.o]||0)+d.v;});
+  var top2 = Object.keys(byOrg).sort(function(a,b){return byOrg[b]-byOrg[a];}).slice(0,2);
+  if(top2.length<2){ wrap.innerHTML=''; return; }
+  var ser = top2.map(function(o){ return TR.series.find(function(s){return s.o===o;}); }).filter(Boolean);
+  if(ser.length<2){ wrap.innerHTML=''; return; }
+  var labels = TR.labels||[];
+  var COL=['#1a3eff','#d85a30'];
+  var W=680,H=260,L=44,R=20,T=20,B=34;
+  var allV=[]; ser.forEach(function(s){allV=allV.concat(s.v);});
+  var mx=Math.max.apply(null,allV)||1;
+  var n=ser[0].v.length;
+  function X(i){return L+(W-L-R)*(n<=1?0:i/(n-1));}
+  function Y(v){return T+(H-T-B)*(1-v/mx);}
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block" aria-hidden="true">';
+  [0,0.5,1].forEach(function(f){var y=T+(H-T-B)*f, val=Math.round(mx*(1-f));
+    svg+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(W-R)+'" y2="'+y.toFixed(1)+'" stroke="#eceae2"/>';
+    svg+='<text x="'+(L-7)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="#8b8b8d" font-family="JetBrains Mono,monospace">'+trMan(val)+'</text>';});
+  ser.forEach(function(s,si){
+    var pth=s.v.map(function(v,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);}).join(' ');
+    svg+='<path d="'+pth+'" fill="none" stroke="'+COL[si]+'" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"'+(si?' stroke-dasharray="5 4"':'')+'/>';
+    svg+='<circle cx="'+X(n-1).toFixed(1)+'" cy="'+Y(s.v[n-1]).toFixed(1)+'" r="3" fill="'+COL[si]+'"/>';
+  });
+  // x축 라벨 (처음/중간/끝)
+  [0,Math.floor((n-1)/2),n-1].forEach(function(i){
+    svg+='<text x="'+X(i).toFixed(1)+'" y="'+(H-B+16)+'" text-anchor="middle" font-size="8.5" fill="#a8a79f" font-family="JetBrains Mono,monospace">'+(labels[i]||'')+'</text>';});
+  svg+='</svg>';
+  var legend='<div style="display:flex;gap:16px;justify-content:center;margin-top:8px">'+ser.map(function(s,si){
+    return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:'+COL[si]+'"><span style="width:14px;height:0;border-top:2.5px '+(si?'dashed':'solid')+' '+COL[si]+'"></span>'+esc(s.o)+(s.loc?' · 지방':'')+'</span>';
+  }).join('')+'</div>';
+  wrap.innerHTML =
+    '<div style="position:relative;border:0.5px solid #e0ddd4;border-radius:12px;background:#fff;padding:16px 16px 14px;overflow:hidden">'+
+      '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
+        '<span style="font-size:14px;font-weight:600;color:#0e0e10">이번 주 인기 기관 비교</span>'+
+        '<span style="font-size:10.5px;color:#8b8b8d;font-family:JetBrains Mono,monospace">최근 '+n+'주 조회수 추이</span>'+
+      '</div>'+
+      svg + legend +
+      // 예시 오버레이
+      '<div style="position:absolute;inset:0;background:rgba(250,250,247,0.55);backdrop-filter:saturate(1.05);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:16px">'+
+        '<span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#1a3eff;background:#e6ebff;padding:4px 12px;border-radius:20px">예시입니다</span>'+
+        '<span style="font-size:13px;color:#0e0e10;font-weight:500;line-height:1.5;max-width:340px">기관 두 곳을 고르면 이렇게 <b>추이를 나란히</b> 비교할 수 있어요.<br>위에서 기관을 선택해 보세요.</span>'+
+      '</div>'+
+    '</div>';
 }
 
 /* ── 스케일 ── */
@@ -4920,6 +5041,12 @@ function trWireHover(){
     var eng=b.getAttribute('data-mode')==='eng';
     document.getElementById('trEngView').style.display=eng?'':'none';
     document.getElementById('trViewView').style.display=eng?'none':'';});
+
+  // 모바일에서는 산점도 겹침이 심하므로 조회수 막대뷰를 기본으로 (초기 1회 판단)
+  if (window.matchMedia && window.matchMedia('(max-width:640px)').matches) {
+    var mv = document.querySelector('#trMode button[data-mode="view"]');
+    if (mv) mv.click();
+  }
 }
 
 function trDrawBars(){
@@ -5069,7 +5196,7 @@ function trOpenVideo(bucket, i){
 })();
 
 // ─── DB Modal ───
-function openDbModal() { document.getElementById('dbModal').classList.add('open'); }
+function openDbModal() { hideSplash(); document.getElementById('dbModal').classList.add('open'); }
 function closeDbModal() { document.getElementById('dbModal').classList.remove('open'); }
 
 document.getElementById('modalJsonFile').addEventListener('change', e => {
@@ -5131,6 +5258,25 @@ async function loadFromUrl() {
 }
 
 // ─── Auto load ───
+// ─── Brand splash control ───
+const SPLASH_MIN_MS = 1500;          // 최소 노출 (로고 애니메이션 1회 완결 시간)
+const SPLASH_MAX_MS = 8000;          // 안전장치: 최대 대기 후 강제 제거
+const __splashStart = Date.now();
+let __splashDone = false;
+function hideSplash() {
+  if (__splashDone) return;
+  __splashDone = true;
+  const el = document.getElementById('splash');
+  if (!el) return;
+  const wait = Math.max(0, SPLASH_MIN_MS - (Date.now() - __splashStart));
+  setTimeout(() => {
+    el.classList.add('hide');
+    setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 560);
+  }, wait);
+}
+// 데이터가 아무리 느려도(또는 실패해도) 스플래시에 갇히지 않도록 강제 해제
+setTimeout(hideSplash, SPLASH_MAX_MS);
+
 const DATA_URL = 'https://raw.githubusercontent.com/contentsdat/inkdot_search/main/data.json';
 const DESC_URL = 'https://raw.githubusercontent.com/contentsdat/inkdot_search/main/descriptions.json';
 
@@ -5216,6 +5362,7 @@ function normalizeData(items) {
 
 // ─── Init ───
 function initApp(json) {
+  hideSplash();
   DB = json;
   DB.data = normalizeData(DB.data);
   const m = DB.meta || {};
@@ -6357,6 +6504,7 @@ function runCompare() {
 
   const result = document.getElementById('cmpResult');
   result.classList.add('active');
+  var _exW = document.getElementById('cmpExampleWrap'); if(_exW) _exW.style.display='none';
 
   if (!orgA) {
     document.getElementById('cmpSummaryBand').innerHTML = `
