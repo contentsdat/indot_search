@@ -140,7 +140,7 @@ function getLimitMsg(type) {
   position: fixed; inset: 0; z-index: 100000;
   background: var(--blue);
   opacity: 1;
-  transition: opacity 520ms cubic-bezier(.4,0,.2,1);
+  transition: opacity 750ms cubic-bezier(.4,0,.2,1);
 }
 .splash.hide { opacity: 0; pointer-events: none; }
 /* 로고를 화면 중앙이 아닌 좌상단 쪽으로 비대칭 배치 */
@@ -155,7 +155,7 @@ function getLimitMsg(type) {
   border-radius: 50%;
   background: var(--paper);
   margin: 0 auto;
-  animation: splashGrow 1.5s cubic-bezier(.4,0,.2,1) forwards;
+  animation: splashGrow 1.75s cubic-bezier(.4,0,.2,1) forwards;
 }
 .splash-logo::after {
   content: ''; position: absolute;
@@ -5259,8 +5259,9 @@ async function loadFromUrl() {
 
 // ─── Auto load ───
 // ─── Brand splash control ───
-const SPLASH_MIN_MS = 1500;          // 최소 노출 (로고 애니메이션 1회 완결 시간)
-const SPLASH_MAX_MS = 8000;          // 안전장치: 최대 대기 후 강제 제거
+const SPLASH_FADE_AT  = 1000;        // 배경 페이드 시작 (로고가 커지며 사라지는 후반부와 겹침)
+const SPLASH_FADE_MS  = 750;         // 배경 페이드 지속 (로고 사라짐 속도와 어우러짐)
+const SPLASH_MAX_MS   = 8000;        // 안전장치: 최대 대기 후 강제 제거
 const __splashStart = Date.now();
 let __splashDone = false;
 function hideSplash() {
@@ -5268,10 +5269,10 @@ function hideSplash() {
   __splashDone = true;
   const el = document.getElementById('splash');
   if (!el) return;
-  const wait = Math.max(0, SPLASH_MIN_MS - (Date.now() - __splashStart));
+  const wait = Math.max(0, SPLASH_FADE_AT - (Date.now() - __splashStart));
   setTimeout(() => {
-    el.classList.add('hide');
-    setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 560);
+    el.classList.add('hide');   // 파란 배경이 서서히 걷히며 본화면이 드러남
+    setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, SPLASH_FADE_MS + 40);
   }, wait);
 }
 // 데이터가 아무리 느려도(또는 실패해도) 스플래시에 갇히지 않도록 강제 해제
