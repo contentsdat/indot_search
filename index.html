@@ -3258,11 +3258,8 @@ mark { background: var(--blue-tint); color: var(--blue-2); padding: 0 2px; font-
 .tr-th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .tr-sh{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.66),rgba(0,0,0,.05) 60%)}
 .tr-lb{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;line-height:1;padding:0 3px 4px;width:100%;height:100%}
-.tr-lb .r{font-size:14px;font-weight:800;letter-spacing:-.02em;opacity:1;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.tr-lb .r{font-size:12.5px;font-weight:800;letter-spacing:-.02em;opacity:1;text-shadow:0 1px 3px rgba(0,0,0,.7)}
 .tr-lb .o{font-size:10.5px;line-height:1.1;text-align:center;font-weight:700;letter-spacing:-.02em;text-shadow:0 1px 3px rgba(0,0,0,.75)}
-.tr-th.hero .tr-lb .r{font-size:22px}
-.tr-th.hero .tr-lb .o{font-size:15px;letter-spacing:-.03em}
-.tr-th.hero .tr-lb{padding-bottom:7px;gap:2px}
 .tr-otype{position:absolute;top:0;left:0;z-index:2;font-size:8px;font-weight:700;color:#fff;background:var(--blue,#1a3eff);padding:1px 4px;letter-spacing:.04em;line-height:1.35}
 .tr-otype.loc{background:oklch(0.62 0.16 55)}
 .tr-th.hero .tr-otype{font-size:10px;padding:2px 6px}
@@ -4946,17 +4943,18 @@ function trPicks(){
   return out;
 }
 function trRelax(items,sizes){
+  // Y(참여율)는 보존하고, 겹치면 X(가로)로만 밀어낸다. 살짝 겹침은 허용.
   var p=items.map(function(d){return {x:trX(d.v),y:trY(d.eng)};});
+  var PAD=6, OV=0.85;  // OV<1: 카드끼리 살짝 겹쳐도 허용
   for(var pass=0;pass<400;pass++){
     var moved=false;
     for(var a=0;a<p.length;a++)for(var b=a+1;b<p.length;b++){
-      var mx=(sizes[a][0]+sizes[b][0])/2+14, my=(sizes[a][1]+sizes[b][1])/2+12;
+      var mx=(sizes[a][0]+sizes[b][0])/2*OV+PAD, my=(sizes[a][1]+sizes[b][1])/2*OV+PAD;
       var dx=p[b].x-p[a].x, dy=p[b].y-p[a].y;
       var ox=mx-Math.abs(dx), oy=my-Math.abs(dy);
-      if(ox>0&&oy>0){
-        if(oy/my<=ox/mx){var q=oy/2+1,s=dy>=0?1:-1;p[a].y-=s*q;p[b].y+=s*q;}
-        else{var q2=ox/2+1,s2=dx>=0?1:-1;p[a].x-=s2*q2;p[b].x+=s2*q2;}
-        moved=true;}}
+      if(ox>0&&oy>0){ // 겹침 → 가로로만 분리, Y는 건드리지 않음
+        var q=ox/2+0.5, s=dx>=0?1:-1;
+        p[a].x-=s*q; p[b].x+=s*q; moved=true;}}
     p.forEach(function(pt,i){
       pt.y=Math.min(Math.max(pt.y,TR_T+sizes[i][1]/2),TR_PH-TR_B-sizes[i][1]/2-4);
       pt.x=Math.min(Math.max(pt.x,TR_L+sizes[i][0]/2+2),TR_PW-TR_R-sizes[i][0]/2);});
@@ -4980,10 +4978,11 @@ function trDrawScatter(){
 
   TR.top=trPicks();
   var best=TR.top.slice().sort(function(a,b){return b.eng-a.eng;})[0];
-  var sizes=TR.top.map(function(d){return d===best?[256,144]:[96,54];});
+  var TW=112, TH=63;  // 모든 썸네일 균일 크기 — 위치가 참여율에 정확히 대응
+  var sizes=TR.top.map(function(){return [TW,TH];});
   TR.pos=trRelax(TR.top,sizes);
   var tiles=TR.top.map(function(d,i){
-    var isHero=d===best,w=sizes[i][0],h=sizes[i][1];
+    var isHero=d===best,w=TW,h=TH;
     var dur=(5+((i*37)%30)/10).toFixed(1),dly=(-((i*53)%50)/10).toFixed(1);
     var fx=(TR.pos[i].x/TR_PW*100).toFixed(2)+'%', fy=(TR.pos[i].y/TR_PH*100).toFixed(2)+'%';
     return '<div class="tr-th'+(isHero?' hero':'')+'" data-i="'+i+'" data-x="'+fx+'" data-y="'+fy+'"'+
@@ -4993,7 +4992,7 @@ function trDrawScatter(){
       '<div class="tr-th-in"'+(d.loc?' style="border-color:'+TR_LOC+'"':'')+'>'+trImg(d,false,'')+
       '<span class="tr-sh"></span>'+
       '<span class="tr-otype'+(d.loc?' loc':'')+'">'+(d.loc?'지방':'중앙')+'</span>'+
-      '<span class="tr-lb"><span class="r">#'+(i+1)+'</span>'+
+      '<span class="tr-lb"><span class="r">'+d.eng.toFixed(1)+'%</span>'+
       '<span class="o">'+esc(d.o.slice(0,7))+'</span></span></div></div>';}).join('');
 
   var plot=document.getElementById('trPlot');
@@ -5369,8 +5368,13 @@ function initApp(json) {
   const m = DB.meta || {};
   const totalCnt = (m.total || DB.data.length);
   const totalStr = totalCnt.toLocaleString();
-  const weeksCnt = (m.weeks || []).length || (m.files || '?');
-  document.getElementById('headerMeta').textContent = `${totalStr} ITEMS · ${weeksCnt} WEEKS`;
+  const weeksArr = m.weeks || [];
+  const weeksCnt = weeksArr.length || (m.files || '?');
+  // 최신 주차 라벨: "2026년 8월 2주차" → "2026년 8월 2주"
+  const latestWk = weeksArr.length ? String(weeksArr[weeksArr.length - 1]).replace(/주차$/, '주') : '';
+  document.getElementById('headerMeta').textContent = latestWk
+    ? `✓ ${latestWk}까지 업데이트됨`
+    : `${totalStr} ITEMS · ${weeksCnt} WEEKS`;
 
   // ── 히어로 카운트업 애니메이션 ──
   function heroCountUp(id, toVal, formatFn, duration, delay) {
